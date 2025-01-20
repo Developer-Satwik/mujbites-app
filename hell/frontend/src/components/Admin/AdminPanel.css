@@ -1,0 +1,524 @@
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap'); /* Bebas Neue */
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;700&display=swap'); /* Oswald for body text */
+
+/* Mafia-Themed Admin Panel Styles */
+.mafia-admin-panel {
+  max-width: 1100px;
+  width: 90%;
+  margin: 30px auto;
+  background-color: #2a2a2a; /* Dark panel background */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5); /* Deeper shadow */
+  border-radius: 8px;
+  overflow: hidden;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  border: 2px solid #5a4d3e; /* Leather-like border */
+  position: relative;
+  overflow: hidden;
+}
+
+/* Subtle Pinstripes/Damask Background */
+.mafia-admin-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url('https://www.transparenttextures.com/patterns/dark-dotted.png') repeat; /* Pinstripes/Damask pattern */
+  opacity: 0.1; /* Very subtle opacity */
+  z-index: -1;
+}
+
+/* Parallax Background */
+.mafia-admin-panel::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url('https://www.transparenttextures.com/patterns/dark-wood.png') repeat;
+  opacity: 0.2;
+  z-index: -2;
+  animation: parallax 10s linear infinite;
+}
+
+@keyframes parallax {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.mafia-admin-panel h1 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #f5f5dc; /* Classic Off-White/Cream for headers */
+  font-size: 2.5rem; /* Larger for emphasis */
+  font-family: 'Bebas Neue', sans-serif; /* Bebas Neue for headings */
+  font-weight: 400; /* Bebas Neue is naturally bold */
+  letter-spacing: 2px; /* Spacing for a vintage look */
+  text-transform: uppercase; /* Uppercase for a bold look */
+  animation: fadeIn 1.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mafia-admin-panel table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  table-layout: fixed;
+  background-color: #3a3a3a; /* Dark table background */
+  border: 2px solid #5a4d3e; /* Leather-like border */
+  animation: slideIn 1s ease-in-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.mafia-admin-panel th,
+.mafia-admin-panel td {
+  border: 1px solid #5a4d3e; /* Leather-like border */
+  padding: 10px;
+  text-align: center;
+  font-size: 0.9rem;
+  word-wrap: break-word;
+  color: #f5f5dc; /* Classic Off-White/Cream for text */
+}
+
+.mafia-admin-panel th {
+  background-color: #4a4a4a; /* Darker header background */
+  color: #f5f5dc; /* Classic Off-White/Cream for headers */
+  font-family: 'Bebas Neue', sans-serif; /* Bebas Neue for table headers */
+  font-weight: 400;
+  letter-spacing: 1px; /* Spacing for a vintage look */
+  text-transform: uppercase; /* Uppercase for headers */
+}
+
+.mafia-admin-panel tr:nth-child(even) {
+  background-color: #2a2a2a; /* Alternate row color */
+}
+
+.mafia-admin-panel tr:hover {
+  background-color: #3a3a3a; /* Hover effect */
+  transition: background-color 0.3s ease;
+}
+
+.mafia-admin-panel select,
+.mafia-admin-panel button {
+  margin: 5px 0;
+  padding: 8px;
+  font-size: 0.9rem;
+  width: auto;
+  border: 1px solid #5a4d3e; /* Leather-like border */
+  border-radius: 4px;
+  box-sizing: border-box;
+  font-family: 'Oswald', sans-serif; /* Oswald for body text */
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  background-color: #4a4a4a; /* Dark background */
+  color: #f5f5dc; /* Classic Off-White/Cream for text */
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.mafia-admin-panel select:hover,
+.mafia-admin-panel button:hover {
+  background-color: #5a4d3e; /* Leather-like hover effect */
+  transform: scale(1.05); /* Slight zoom effect on hover */
+}
+
+.mafia-admin-panel button {
+  background: linear-gradient(145deg, #3a3a3a, #2a2a2a); /* Dark Silver/Gunmetal gradient */
+  color: #f5f5dc; /* Classic Off-White/Cream for text */
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.mafia-admin-panel button:hover {
+  background: linear-gradient(145deg, #4a4a4a, #3a3a3a); /* Brighter gradient on hover */
+  transform: scale(1.05); /* Slight zoom effect on hover */
+}
+
+.mafia-admin-panel .error-message {
+  color: #ff4d4d; /* Red for errors */
+  font-weight: 700;
+  margin-top: 10px;
+  text-align: center;
+  letter-spacing: 0.5px;
+  animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-10px);
+  }
+  50% {
+    transform: translateX(10px);
+  }
+  75% {
+    transform: translateX(-10px);
+  }
+}
+
+.mafia-admin-panel .success-message {
+  color: #4dff4d; /* Green for success */
+  font-weight: 700;
+  margin-top: 10px;
+  text-align: center;
+  letter-spacing: 0.5px;
+  animation: fadeIn 1s ease-in-out;
+}
+
+.mafia-admin-panel .loading {
+  font-size: 16px;
+  font-weight: 500;
+  color: #d4af37; /* Gold for loading */
+  text-align: center;
+  letter-spacing: 0.5px;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.mafia-admin-panel .button-container {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.mafia-admin-panel .orders-button {
+  background: linear-gradient(145deg, #3a3a3a, #2a2a2a); /* Dark Silver/Gunmetal gradient */
+  color: #f5f5dc; /* Classic Off-White/Cream for text */
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-family: 'Bebas Neue', sans-serif; /* Bebas Neue for buttons */
+  font-weight: 400;
+  letter-spacing: 0.5px;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.mafia-admin-panel .orders-button:hover {
+  background: linear-gradient(145deg, #4a4a4a, #3a3a3a); /* Brighter gradient on hover */
+  transform: scale(1.05); /* Slight zoom effect on hover */
+}
+
+.mafia-admin-panel .admin-controls-button {
+  background: linear-gradient(145deg, #3a3a3a, #2a2a2a); /* Dark Silver/Gunmetal gradient */
+  color: #f5f5dc; /* Classic Off-White/Cream for text */
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-family: 'Bebas Neue', sans-serif; /* Bebas Neue for buttons */
+  font-weight: 400;
+  letter-spacing: 0.5px;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.mafia-admin-panel .admin-controls-button:hover {
+  background: linear-gradient(145deg, #4a4a4a, #3a3a3a); /* Brighter gradient on hover */
+  transform: scale(1.05); /* Slight zoom effect on hover */
+}
+
+.mafia-admin-panel .filter-container {
+  position: relative;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: center; /* Center the filter icon */
+  gap: 10px; /* Add space between filter icons */
+}
+
+.mafia-admin-panel .filter-icon {
+  cursor: pointer;
+  font-size: 1.2rem;
+  color: #d4af37; /* Gold for filter icon */
+  transition: color 0.3s ease;
+}
+
+.mafia-admin-panel .sort-icon {
+  cursor: pointer;
+  font-size: 1.2rem;
+  color: #d4af37; /* Gold for sorting icon */
+  transition: color 0.3s ease;
+}
+
+.mafia-admin-panel .filter-dropdown {
+  position: absolute;
+  top: 100%; /* Position below the filter icon */
+  left: 50%; /* Center horizontally */
+  transform: translateX(-50%); /* Adjust for centering */
+  background-color: #4a4a4a; /* Dark dropdown background */
+  border: 1px solid #5a4d3e; /* Leather-like border */
+  border-radius: 4px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5); /* Deeper shadow */
+  z-index: 1000; /* Ensure it's above other elements */
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-family: 'Oswald', sans-serif; /* Oswald for dropdown text */
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  animation: slideDown 0.3s ease-in-out;
+  max-width: 90%; /* Ensure it doesn't overflow the screen */
+  width: max-content; /* Adjust width based on content */
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mafia-admin-panel .filter-dropdown div {
+  padding: 5px 10px;
+  cursor: pointer;
+  border-radius: 4px;
+  color: #f5f5dc; /* Classic Off-White/Cream for text */
+  transition: background-color 0.3s ease;
+}
+
+.mafia-admin-panel .filter-dropdown div:hover {
+  background-color: #5a4d3e; /* Leather-like hover effect */
+}
+
+.mafia-admin-panel .orders-table {
+  width: 100%;
+  margin-top: 20px;
+  overflow-x: auto;
+  background-color: #3a3a3a; /* Dark table background */
+  border: 2px solid #5a4d3e; /* Leather-like border */
+  animation: fadeIn 1s ease-in-out;
+}
+
+.mafia-admin-panel .orders-table h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #f5f5dc; /* Classic Off-White/Cream for headers */
+  font-size: 1.5rem;
+  font-family: 'Bebas Neue', sans-serif; /* Bebas Neue for headings */
+  font-weight: 400;
+  letter-spacing: 0.5px;
+}
+
+.mafia-admin-panel .orders-table table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  table-layout: fixed;
+}
+
+.mafia-admin-panel .orders-table th,
+.mafia-admin-panel .orders-table td {
+  border: 1px solid #5a4d3e; /* Leather-like border */
+  padding: 10px;
+  text-align: center;
+  font-size: 0.9rem;
+  word-wrap: break-word;
+  color: #f5f5dc; /* Classic Off-White/Cream for text */
+}
+
+.mafia-admin-panel .orders-table th {
+  background-color: #4a4a4a; /* Darker header background */
+  color: #f5f5dc; /* Classic Off-White/Cream for headers */
+  font-family: 'Bebas Neue', sans-serif; /* Bebas Neue for table headers */
+  font-weight: 400;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.mafia-admin-panel .orders-table tr:nth-child(even) {
+  background-color: #2a2a2a; /* Alternate row color */
+}
+
+.mafia-admin-panel .orders-table tr:hover {
+  background-color: #3a3a3a; /* Hover effect */
+  transition: background-color 0.3s ease;
+}
+
+/* Full Details Section */
+.full-details {
+  margin-top: 10px;
+  padding: 10px;
+  background-color: #3a3a3a;
+  border: 1px solid #5a4d3e;
+  border-radius: 4px;
+  display: flex;
+  gap: 20px; /* Space between details */
+  flex-wrap: wrap; /* Wrap items for smaller screens */
+}
+
+/* Full Details Section - Mobile */
+@media (max-width: 768px) {
+  .full-details {
+    flex-direction: column; /* Stack details vertically on mobile */
+    gap: 10px; /* Reduce gap for mobile */
+  }
+}
+
+.details-button {
+  background: linear-gradient(145deg, #3a3a3a, #2a2a2a);
+  color: #f5f5dc;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.details-button:hover {
+  background: linear-gradient(145deg, #4a4a4a, #3a3a3a);
+  transform: scale(1.05);
+}
+
+/* Responsive Design for Mobile Devices */
+@media (max-width: 768px) {
+  .mafia-admin-panel {
+    padding: 10px;
+  }
+
+  .mafia-admin-panel h1 {
+    font-size: 2rem;
+  }
+
+  .mafia-admin-panel table {
+    font-size: 0.8rem;
+  }
+
+  .mafia-admin-panel th,
+  .mafia-admin-panel td {
+    padding: 8px;
+  }
+
+  .mafia-admin-panel select,
+  .mafia-admin-panel button {
+    font-size: 0.8rem;
+    padding: 6px;
+  }
+
+  .mafia-admin-panel .button-container {
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .mafia-admin-panel .orders-button,
+  .mafia-admin-panel .admin-controls-button {
+    width: 100%;
+    padding: 8px 16px;
+    font-size: 0.9rem;
+  }
+
+  .mafia-admin-panel .filter-dropdown {
+    left: 50% !important; /* Center horizontally */
+    transform: translateX(-50%) !important; /* Adjust for centering */
+    width: 90% !important; /* Make the dropdown wider on mobile */
+    max-width: 90% !important; /* Ensure it doesn't overflow the screen */
+    top: 100% !important; /* Position below the filter icon */
+  }
+
+  .mafia-admin-panel .orders-table h2 {
+    font-size: 1.2rem;
+  }
+
+  .mafia-admin-panel .orders-table th,
+  .mafia-admin-panel .orders-table td {
+    font-size: 0.8rem;
+    padding: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .mafia-admin-panel h1 {
+    font-size: 1.5rem;
+  }
+
+  .mafia-admin-panel table {
+    font-size: 0.7rem;
+  }
+
+  .mafia-admin-panel th,
+  .mafia-admin-panel td {
+    padding: 6px;
+  }
+
+  .mafia-admin-panel select,
+  .mafia-admin-panel button {
+    font-size: 0.7rem;
+    padding: 5px;
+  }
+
+  .mafia-admin-panel .orders-button,
+  .mafia-admin-panel .admin-controls-button {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+  }
+
+  .mafia-admin-panel .filter-dropdown {
+    left: 50% !important; /* Center horizontally */
+    transform: translateX(-50%) !important; /* Adjust for centering */
+    width: 90% !important; /* Make the dropdown wider on mobile */
+    max-width: 90% !important; /* Ensure it doesn't overflow the screen */
+    top: 100% !important; /* Position below the filter icon */
+  }
+
+  .mafia-admin-panel .orders-table h2 {
+    font-size: 1rem;
+  }
+
+  .mafia-admin-panel .orders-table th,
+  .mafia-admin-panel .orders-table td {
+    font-size: 0.7rem;
+    padding: 6px;
+  }
+}

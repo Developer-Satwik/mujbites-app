@@ -1,0 +1,541 @@
+/* General Page Layout */
+.page-layout {
+  display: flex;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* Navbar Styles */
+.navbar {
+  width: 100%;
+  background-color: transparent;
+  height: 60px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  transition: height 0.5s ease-in-out, padding 0.5s ease-in-out, background-color 0.5s ease-in-out;
+  overflow: hidden;
+  z-index: 100;
+  box-shadow: none;
+}
+
+/* Navbar hover effect for desktop */
+@media (min-width: 769px) {
+  .navbar {
+    width: 50px;
+    height: 100vh;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .navbar:hover {
+    width: 250px;
+    padding: 20px;
+    background-color: #F7E9B7;
+    box-shadow: 3px 0 10px rgba(0, 0, 0, 0.1);
+  }
+
+  .navbar:hover .nav-item {
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
+/* Navbar open state (for mobile and manual toggle) */
+.navbar.open {
+  width: calc(100% - 30px); /* Leave 20px space on the right and 10px on the left */
+  height: auto; /* Shrink to fit content */
+  padding: 10px;
+  background-color: #F7E9B7;
+  box-shadow: 3px 0 10px rgba(0, 0, 0, 0.1);
+  border-radius: 20px; /* Add rounded corners */
+  margin: 10px 20px 10px 10px; /* Add margin: top right bottom left */
+  overflow: hidden; /* Ensure content doesn't overflow rounded corners */
+  left: 5px; /* Increase space on the left */
+  right: 25px; /* Reduce space on the right */
+}
+
+@media (min-width: 769px) {
+  .navbar.open {
+    width: 250px;
+    height: 100vh;
+    padding: 20px;
+    border-radius: 0; /* Reset rounded corners for desktop */
+    margin: 0; /* Reset margin for desktop */
+    left: 0; /* Reset left position for desktop */
+    right: auto; /* Reset right position for desktop */
+  }
+}
+
+/* Hamburger Icon */
+.hamburger-icon {
+  cursor: pointer;
+  font-size: 2rem;
+  color: #333333;
+  padding: 15px;
+  position: fixed; /* Ensure it stays fixed */
+  z-index: 1000; /* Higher z-index to stay above everything */
+  left: 10px; /* Adjust left position */
+  top: 10px; /* Adjust top position */
+  transition: transform 0.3s ease-in-out;
+  border-radius: 8px; /* Rounded corners */
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  background-color: transparent; /* Semi-transparent background */
+}
+
+.navbar.open .hamburger-icon {
+  margin-bottom: 20px;
+  transform: rotate(360deg);
+  border-radius: 8px; /* Maintain rounded corners when open */
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1); /* Maintain shadow when open */
+}
+
+/* Sidebar Styles */
+.sidebar {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 10px 0;
+}
+
+.nav-menu {
+  list-style: none;
+  padding: 0;
+  width: 100%;
+  margin-top: 60px;
+}
+
+.nav-item {
+  margin-bottom: 15px;
+  width: 100%;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
+}
+
+/* Divider between menu items */
+.nav-item:not(:last-child) {
+  border-bottom: 1px solid rgba(51, 51, 51, 0.1);
+}
+
+.navbar.open .nav-item,
+.navbar:hover .nav-item {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Navbar Links */
+.nav-links {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: #333333;
+  padding: 12px 15px;
+  border-radius: 4px;
+  width: calc(100% - 20px);
+  box-sizing: border-box;
+  transition: all 0.3s ease-in-out;
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+/* Hover Effects for Menu Items */
+.nav-links:hover {
+  background-color: rgba(230, 184, 0, 0.1);
+  transform: scale(1.02);
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Active Page Link */
+.nav-links.active {
+  font-weight: 600;
+  background-color: rgba(230, 184, 0, 0.1);
+}
+
+.nav-links svg {
+  font-size: 1.5rem;
+  margin-right: 10px;
+  color: #333333;
+}
+
+/* Logout button pushed to the bottom */
+.nav-item:last-child {
+  margin-top: auto;
+  border-bottom: none;
+}
+
+/* Content Styles */
+.content {
+  flex-grow: 1;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  margin-left: 0;
+  transition: margin-left 0.5s ease-in-out;
+}
+
+@media (min-width: 769px) {
+  .content {
+    margin-left: 50px;
+  }
+
+  .content.shifted {
+    margin-left: 250px;
+  }
+}
+
+/* Header Styles */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  width: 100%;
+  position: relative;
+}
+
+/* Logo Styles */
+.logo {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: -230px; /* Adjust this value to prevent overlap */
+  height: 730px;
+  width: auto;
+  z-index: 1; /* Ensure the logo is below the hamburger icon */
+}
+
+@media (max-width: 768px) {
+  .logo {
+    top: -240px; /* Adjust for smaller screens */
+    height: 650px;
+    width: 650px;
+    left: 54%;
+    transform: translateX(-50%);
+    z-index: 1; /* Ensure the logo is below the hamburger icon */
+  }
+}
+
+/* Cart Icon - Desktop styles */
+.cart-icon {
+  font-size: 2rem;
+  color: #000;
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 998;
+  cursor: pointer;
+}
+
+.cart-icon a {
+  text-decoration: none;
+  color: inherit;
+}
+
+.cart-icon svg {
+  vertical-align: middle;
+  color: #000;
+}
+
+.cart-icon button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  background-color: #fac744;
+  padding: 10px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px; /* Changed to square shape */
+  transition: background-color 0.2s ease;
+  width: auto; /* Allow width to adjust based on content */
+  min-width: 40px; /* Minimum width to ensure visibility */
+}
+
+.cart-icon button:hover {
+  background-color: rgba(230, 184, 0, 0.2);
+}
+
+/* Notification Icon */
+.notification-icon {
+  color: #000;
+  position: fixed;
+  top: 20px;
+  right: 90px;
+  z-index: 102;
+  cursor: pointer;
+  transition: none;
+}
+
+.notification-icon button {
+  color: #e6b800;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 10px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px; /* Changed to square shape */
+  transition: background-color 0.2s ease;
+  width: auto; /* Allow width to adjust based on content */
+  min-width: 40px; /* Minimum width to ensure visibility */
+}
+
+.notification-icon button:hover {
+  background-color: rgba(230, 184, 0, 0.1);
+}
+
+.notification-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background-color: red;
+  color: white;
+  border-radius: 50%;
+  padding: 2px 6px;
+  font-size: 12px;
+}
+
+.notification-dropdown {
+  position: absolute;
+  top: 50px;
+  right: 0;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  width: 300px;
+  max-height: 400px;
+  overflow-y: auto;
+  z-index: 103;
+}
+
+.notification-item {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.notification-item:last-child {
+  border-bottom: none;
+}
+
+.notification-item p {
+  margin: 0;
+  font-size: 14px;
+}
+
+.notification-item small {
+  color: #666;
+  font-size: 12px;
+}
+
+.notification-item.error {
+  color: red;
+}
+
+/* Responsive Design for Phones */
+@media (max-width: 768px) {
+  .navbar {
+    height: 60px;
+    width: 100%;
+    background-color: transparent;
+    flex-direction: row;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    transition: height 0.5s ease-in-out, padding 0.5s ease-in-out, background-color 0.5s ease-in-out;
+    overflow: hidden;
+    box-shadow: none;
+  }
+
+  .navbar:not(.open) .nav-item {
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  .navbar.open {
+    width: calc(100% - 30px); /* Leave 20px space on the right and 10px on the left */
+    height: auto; /* Shrink to fit content */
+    padding: 10px;
+    background-color: #F7E9B7;
+    box-shadow: 3px 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 20px; /* Add rounded corners */
+    margin: 10px 20px 10px 10px; /* Add margin: top right bottom left */
+    overflow: hidden; /* Ensure content doesn't overflow rounded corners */
+    left: 5px; /* Increase space on the left */
+    right: 25px; /* Reduce space on the right */
+    z-index: 1000;
+  }
+
+  .sidebar {
+    flex-direction: column;
+    width: 100%;
+    align-items: flex-start;
+    padding: 10px 0;
+  }
+
+  .nav-menu {
+    margin-top: 60px;
+  }
+
+  .nav-item {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.3s ease-in-out 0.2s;
+  }
+
+  .content {
+    margin-top: 60px;
+    margin-left: 0;
+  }
+
+  .content.shifted {
+    margin-top: 60px;
+  }
+
+  .logo {
+    top: -240px;
+    height: 650px;
+    width: 650px;
+    left: 54%;
+    transform: translateX(-50%);
+  }
+
+  .hamburger-icon {
+    font-size: 1.7rem;
+    color: #333333;
+    padding: 13px;
+    padding-bottom: 3px;
+    background-color: transparent;
+    padding-top: 10px;
+    position: fixed; /* Ensure it stays fixed */
+    z-index: 1000; /* Higher z-index to stay above everything */
+    left: 10px; /* Adjust left position */
+    top: 10px; /* Adjust top position */
+    cursor: pointer;
+  }
+
+  /* Adjust cart and notification icons for mobile */
+  .cart-icon {
+    font-size: 1.5rem;
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: auto;
+    height: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: transparent;
+    z-index: 999;
+  }
+
+  .cart-icon button {
+    width: auto;
+    height: auto;
+    padding: 10px;
+    border-radius: 4px; /* Changed to square shape */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(230, 184, 0, 0.1);
+    transition: background-color 0.2s ease;
+    min-width: 40px; /* Minimum width to ensure visibility */
+  }
+
+  .cart-icon button:hover {
+    background-color: rgba(230, 184, 0, 0.2);
+  }
+
+  .notification-icon {
+    font-size: 1.5rem;
+    position: fixed;
+    top: 20px;
+    right: 70px;
+    width: auto;
+    height: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: transparent;
+    z-index: 999;
+  }
+
+  .notification-icon button {
+    width: auto;
+    height: auto;
+    padding: 10px;
+    border-radius: 4px; /* Changed to square shape */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(230, 184, 0, 0.1);
+    transition: background-color 0.2s ease;
+    min-width: 40px; /* Minimum width to ensure visibility */
+  }
+
+  .notification-icon button:hover {
+    background-color: rgba(230, 184, 0, 0.2);
+  }
+
+  .notification-dropdown {
+    width: 280px;
+    right: 10px;
+    top: 60px;
+  }
+
+  .navbar.open .notification-icon,
+  .navbar.open .cart-icon {
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+}
+
+/* Notification Header */
+.notification-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.notification-header h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.clear-all-button {
+  background: none;
+  border: none;
+  color: #e6b800;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 5px 10px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.clear-all-button:hover {
+  background-color: rgba(230, 184, 0, 0.1);
+}
+
+.clear-all-button:disabled {
+  color: #ccc;
+  cursor: not-allowed;
+}
+
+/* Add this to Navbar.css */
+.notification-icon-restaurant {
+  right: 20px !important; /* Move the notification icon to the right where the cart icon usually is */
+}

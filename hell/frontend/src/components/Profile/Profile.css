@@ -1,0 +1,199 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Open+Sans:wght@400;600&display=swap');
+
+/* General body styles */
+body {
+  font-family: 'Open Sans', sans-serif; /* Body text font */
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  background-color: #F2F2F2; /* Light gray background for the entire page */
+  color: #333333; /* Dark gray for body text */
+  line-height: 1.6; /* Improved readability */
+}
+
+/* Profile Container Styles */
+.profile-container {
+  font-family: 'Open Sans', sans-serif; /* Body text font */
+  max-width: 90%; /* Full width on mobile */
+  margin: 20px auto; /* Adjusted margin for mobile */
+  padding: 20px; /* Increased padding for better spacing */
+  background: #FFFFFF; /* White background for the profile container */
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  animation: fadeIn 0.5s ease-out; /* Fade-in animation */
+}
+
+/* Fade-in animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Profile Heading */
+.profile-container h2 {
+  text-align: center;
+  margin-bottom: 20px; /* Increased spacing below headings */
+  font-size: 2rem; /* Larger font size for headings */
+  font-family: 'Playfair Display', serif; /* Classy serif font for headings */
+  font-weight: 700; /* Bold for headings */
+  color: #222222; /* Dark gray for headings */
+}
+
+/* Section Headings */
+.profile-container .section-heading {
+  font-family: 'Playfair Display', serif; /* Classy serif font for section headings */
+  font-size: 1.5rem; /* Larger font size for section headings */
+  font-weight: 700; /* Bold for headings */
+  color: #222222; /* Dark gray for headings */
+  margin-bottom: 20px; /* Increased spacing below headings */
+  border-bottom: 2px solid #DDDDDD; /* Subtle line below headings */
+  padding-bottom: 10px; /* Spacing between heading and line */
+}
+
+/* Form Group Styles */
+.profile-container .form-group {
+  margin-bottom: 20px; /* Increased spacing between form groups */
+}
+
+.profile-container .form-group label {
+  display: block;
+  font-weight: 600; /* Semi-bold for labels */
+  margin-bottom: 8px; /* Increased spacing between labels and inputs */
+  font-size: 1rem; /* Slightly larger font size for labels */
+  color: #333333; /* Dark gray for labels */
+  text-align: left; /* Left-aligned labels */
+}
+
+/* Input Box Styles */
+.profile-container .input {
+  width: 100%; /* Full width on mobile */
+  height: 40px;
+  padding: 0 1rem;
+  font-size: 1rem; /* Larger font size for input fields */
+  font-family: 'Open Sans', sans-serif; /* Body text font */
+  color: #333333; /* Dark gray for input text */
+  background-color: #FFFFFF; /* White background for input fields */
+  border: 1px solid #DDDDDD; /* Subtle border for input fields */
+  border-radius: 8px;
+  outline: none;
+  transition: all 0.3s ease;
+  text-align: left; /* Left-aligned input text */
+}
+
+.profile-container .input::placeholder {
+  color: #777777; /* Light gray for placeholder text */
+}
+
+.profile-container .input:hover {
+  border-color: #C1D9BF; /* Light green border on hover */
+}
+
+.profile-container .input:focus {
+  border-color: #C1D9BF; /* Light green border on focus */
+  box-shadow: 0 0 5px rgba(193, 217, 191, 0.5); /* Subtle shadow on focus */
+}
+
+/* Error Message Styles */
+.profile-container .error-message {
+  color: #dc3545; /* Red for error messages */
+  font-size: 0.9rem; /* Smaller font size for error messages */
+  margin-top: 5px; /* Spacing above error messages */
+}
+
+/* Save Changes Button Styles */
+.profile-container .btn-save {
+  padding: 1.1em 2em; /* Adjusted padding for a larger button */
+  background: none;
+  border: 2px solid #fff; /* White border */
+  font-size: 15px; /* Larger font size */
+  color: #131313; /* Dark text for contrast */
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s;
+  border-radius: 12px; /* Rounded corners */
+  background-color: #ecd448; /* Yellow background */
+  font-weight: bolder; /* Bold text */
+  box-shadow: 0 2px 0 2px #000; /* Box shadow for depth */
+  width: 100%; /* Full width on mobile */
+  margin-top: 20px; /* Spacing above the button */
+  display: flex;
+  justify-content: center; /* Center-align text horizontally */
+  align-items: center; /* Center-align text vertically */
+}
+
+.profile-container .btn-save::before {
+  content: "";
+  position: absolute;
+  width: 100px;
+  height: 120%;
+  background-color: #ff6700; /* Orange sliding background */
+  top: 50%;
+  transform: skewX(30deg) translate(-150%, -50%);
+  transition: all 0.5s;
+}
+
+.profile-container .btn-save:hover {
+  background-color: #4cc9f0; /* Blue background on hover */
+  color: #fff; /* White text on hover */
+  box-shadow: 0 2px 0 2px #0d3b66; /* Darker shadow on hover */
+}
+
+.profile-container .btn-save:hover::before {
+  transform: skewX(30deg) translate(150%, -50%); /* Slide effect on hover */
+  transition-delay: 0.1s;
+}
+
+.profile-container .btn-save:active {
+  transform: scale(0.9); /* Click effect */
+}
+
+/* Success and Error Messages */
+.profile-container .success-message {
+  color: #28a745; /* Green for success messages */
+  text-align: center;
+  margin-bottom: 10px;
+  font-size: 0.9rem; /* Smaller font size for mobile */
+}
+
+.profile-container .error-message {
+  color: #dc3545; /* Red for error messages */
+  text-align: center;
+  margin-bottom: 10px;
+  font-size: 0.9rem; /* Smaller font size for mobile */
+}
+
+/* Responsive Design for Mobile Screens */
+@media (max-width: 480px) {
+  .profile-container {
+    padding: 15px; /* Further reduced padding for smaller screens */
+  }
+
+  .profile-container h2 {
+    font-size: 1.5rem; /* Smaller font size for smaller screens */
+  }
+
+  .profile-container .section-heading {
+    font-size: 1.3rem; /* Smaller font size for section headings on mobile */
+  }
+
+  .profile-container .form-group label {
+    font-size: 0.9rem; /* Smaller font size for labels on mobile */
+  }
+
+  .profile-container .input {
+    font-size: 0.9rem; /* Smaller font size for input fields on mobile */
+    padding-left: 2rem; /* Adjusted padding for smaller screens */
+  }
+
+  .profile-container .btn-save {
+    padding: 10px 15px; /* Adjusted padding for smaller screens */
+    font-size: 0.9rem; /* Smaller font size for buttons on mobile */
+  }
+}

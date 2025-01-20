@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <link rel="icon" href="https://i.imghippo.com/files/rKF5706qwQ.png" />
+  <!-- Ensure the viewport meta tag is correctly set for mobile responsiveness -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#000000" />
+  <meta name="description" content="Delicious Meals Delivered to you within Minutes!" />
+
+  <!-- Cache-Control Meta Tags -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+
+  <!-- Open Graph Tags for Social Media -->
+  <meta property="og:title" content="MujBites" />
+  <meta property="og:description" content="Delicious Meals Delivered to you within Minutes!" />
+  <meta property="og:image" content="https://i.imghippo.com/files/rKF5706qwQ.png" />
+  <meta property="og:url" content="https://mujbites.com/" />
+
+  <!-- Font Awesome CSS (Updated to latest version) -->
+  <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <!-- Manifest and Apple Touch Icon -->
+  <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+  <link rel="apple-touch-icon" href="https://i.imghippo.com/files/rKF5706qwQ.png" />
+
+  <!-- Google Analytics Script -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-43JQZ73T74"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+    gtag('js', new Date());
+    gtag('config', 'G-43JQZ73T74');
+  </script>
+
+  <!-- Title -->
+  <title>MujBites</title>
+</head>
+<body>
+  <!-- Service Worker Registration -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        // Register the general service worker
+        navigator.serviceWorker
+          .register('/service-worker.js') // Path to the general service worker
+          .then((registration) => {
+            console.log('Service Worker registered with scope:', registration.scope);
+          })
+          .catch((error) => {
+            console.error('Service Worker registration failed:', error);
+          });
+
+        // Register the Firebase Messaging service worker
+        navigator.serviceWorker
+          .register('/firebase-messaging-sw.js') // Path to Firebase Messaging service worker
+          .then((registration) => {
+            console.log('Firebase Messaging Service Worker registered with scope:', registration.scope);
+          })
+          .catch((error) => {
+            console.error('Firebase Messaging Service Worker registration failed:', error);
+          });
+      });
+    } else {
+      console.warn('Service workers are not supported in this browser.');
+    }
+  </script>
+
+  <!-- Fallback for No JavaScript -->
+  <noscript>
+    <div style="text-align: center; padding: 20px; background-color: #f8d7da; color: #721c24;">
+      <p>JavaScript is disabled. Please enable it to experience the full functionality of MujBites.</p>
+    </div>
+  </noscript>
+
+  <!-- Root Element for React App -->
+  <div id="root"></div>
+</body>
+</html>

@@ -1,0 +1,236 @@
+@import url('https://fonts.googleapis.com/css2?family=Bungee&family=Lato:wght@400;700&display=swap');
+
+/* Container Styles */
+.your-orders-container {
+  max-width: 800px; /* Centralize and constrain the width */
+  margin: 20px auto; /* Center the container on the page */
+  padding: 20px;
+  background-color: #f9f9f9; /* Light background for contrast */
+  border-radius: 10px; /* Smooth corners */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: 'Lato', sans-serif; /* Use Lato for body text */
+}
+
+/* Header Styles */
+.your-orders-header {
+  font-family: 'Bungee', cursive; /* Use Bungee for headings */
+  font-size: 36px; /* Larger heading */
+  font-weight: bold;
+  color: #000000; /* Bright and eye-catching */
+  margin-bottom: 25px;
+  text-align: center;
+  animation: fadeIn 1s ease-in-out; /* Fade-in animation */
+}
+
+/* List Styles */
+.your-orders-list {
+  list-style: none;
+  padding: 0;
+  width: 100%;
+  max-width: 600px;
+}
+
+.your-order-item {
+  background: #fff;
+  border: 1px solid #ddd; /* Softer border color */
+  border-radius: 8px; /* Smooth corners */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  margin-bottom: 20px;
+  padding: 20px;
+  text-align: left;
+  transition: transform 0.3s ease, box-shadow 0.3s ease; /* Interactivity */
+  animation: slideUp 0.5s ease-in-out; /* Slide-up animation */
+}
+
+.your-order-item:hover {
+  transform: scale(1.02); /* Slight zoom on hover */
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); /* Stronger shadow on hover */
+}
+
+/* Order Header */
+.order-header {
+  font-family: 'Lato', sans-serif; /* Use Lato for body text */
+  font-size: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.order-header h3 {
+  margin: 0;
+  font-size: 1.3em;
+  color: #333;
+}
+
+/* Order Status */
+.order-status {
+  font-size: 0.9em;
+  text-transform: uppercase; /* Capitalize status */
+}
+
+.order-status .status {
+  font-weight: bold;
+  border-radius: 4px; /* Badge look */
+  padding: 3px 8px;
+}
+
+/* Status Colors */
+.status.Placed {
+  color: #ffffff;
+  background: blue;
+}
+
+.status.Accepted {
+  color: #ffffff;
+  background: green;
+}
+
+.status.Preparing {
+  color: #ffffff;
+  background: orange;
+}
+
+.status.Ready {
+  color: #ffffff;
+  background: rgb(184, 184, 46);
+}
+
+.status.Out-for-Delivery {
+  color: #ffffff;
+  background: rgb(208, 208, 87);
+}
+
+.status.Delivered {
+  color: #ffffff;
+  background: green;
+}
+
+.status.Cancelled {
+  color: #ffffff;
+  background: red;
+}
+
+/* Order Body */
+.order-body {
+  font-size: 16px;
+  line-height: 1.5;
+  margin-bottom: 15px;
+}
+
+.order-body p {
+  margin: 5px 0;
+  color: #555;
+  font-size: 0.95em;
+}
+
+.order-body ul {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0;
+}
+
+.order-body li {
+  margin-bottom: 8px;
+  font-size: 0.95em;
+}
+
+/* Total Amount */
+.order-total {
+  font-size: 1.2em;
+  font-weight: bold;
+  margin-top: 15px;
+  color: #000;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  .your-orders-list {
+    width: 90%;
+    max-width: none;
+  }
+
+  .order-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .order-status {
+    margin-top: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .your-orders-container {
+    max-width: 300px;
+    max-height: fit-content;
+    margin-top: 100px; /* Centralize and constrain the width */
+    padding: 15px;
+  }
+
+  .your-orders-header {
+    font-size: 28px; /* Slightly smaller for small screens */
+  }
+
+  .your-order-item {
+    padding: 15px;
+  }
+
+  .order-header h3 {
+    font-size: 1.1em;
+  }
+
+  .order-total {
+    font-size: 1.1em;
+  }
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Apply animations to list items with delay */
+.your-order-item {
+  animation-delay: 0.2s;
+}
+
+.your-order-item:nth-child(1) {
+  animation-delay: 0.2s;
+}
+
+.your-order-item:nth-child(2) {
+  animation-delay: 0.4s;
+}
+
+.your-order-item:nth-child(3) {
+  animation-delay: 0.6s;
+}
+
+.your-order-item:nth-child(4) {
+  animation-delay: 0.8s;
+}
+
+.your-order-item:nth-child(5) {
+  animation-delay: 1s;
+}
+

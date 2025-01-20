@@ -1,0 +1,384 @@
+/* Base styles for the edit menu page */
+.edit-menu-page {
+  padding: 5px !important;
+  max-width: 1200px !important;
+  margin: 0 auto !important;
+  font-family: 'Playfair Display', serif !important;
+  background-color: #f8f8f8 !important;
+  color: #333 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important; /* Center content vertically */
+}
+
+/* Header styles */
+.edit-menu-page h1 {
+  text-align: center !important;
+  font-size: 1.5rem !important;
+  margin-bottom: 10px !important;
+  color: #2c3e50 !important;
+  font-weight: 700 !important;
+}
+
+/* Prominent "Add Item" button */
+.edit-menu-page .add-item-button {
+  background-color: #FFD700 !important; /* Gold */
+  color: #333 !important; /* Dark text for contrast */
+  border: none !important;
+  padding: 8px 15px !important;
+  border-radius: 5px !important;
+  cursor: pointer !important;
+  font-size: 0.9rem !important;
+  margin-bottom: 10px !important;
+  display: block !important;
+  width: 100% !important;
+  max-width: 150px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  transition: background-color 0.3s ease !important;
+  font-family: 'Lora', serif !important;
+}
+
+.edit-menu-page .add-item-button:hover {
+  background-color: #C0C0C0 !important; /* Silver on hover */
+}
+
+/* Card-based layout for menu items */
+.menu-item {
+  background-color: #ffffff !important;
+  border: 1px solid #e0e0e0 !important;
+  border-radius: 8px !important;
+  padding: 10px !important;
+  margin-bottom: 10px !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
+  transition: box-shadow 0.3s ease, transform 0.3s ease !important;
+  position: relative !important;
+  width: 100% !important;
+  max-width: 800px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important; /* Center content horizontally */
+}
+
+.menu-item:hover {
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15) !important;
+  transform: translateY(-5px) !important;
+}
+
+/* Clear headings for sections */
+.menu-item h3 {
+  font-size: 1.2rem !important;
+  margin-bottom: 8px !important;
+  color: #444 !important;
+  font-family: 'Merriweather', serif !important;
+  text-align: center !important; /* Center heading text */
+}
+
+/* Input fields */
+.menu-item input,
+.menu-item textarea,
+.menu-item select {
+  width: 90% !important; /* Reduced width */
+  padding: 6px !important;
+  margin-bottom: 8px !important;
+  border: 1px solid #ccc !important;
+  border-radius: 5px !important;
+  font-size: 0.8rem !important; /* Keep font size readable */
+  font-family: 'Lora', serif !important;
+  background-color: #f8f8f8 !important;
+  text-align: center !important; /* Center input text */
+}
+
+.menu-item textarea {
+  resize: vertical !important;
+  min-height: 60px !important;
+}
+
+.menu-item input:focus,
+.menu-item textarea:focus,
+.menu-item select:focus {
+  border-color: #FFD700 !important; /* Gold focus border */
+  outline: none !important;
+}
+
+/* Image preview */
+.image-preview {
+  margin-bottom: 8px !important;
+  display: flex !important;
+  justify-content: center !important;
+}
+
+.image-preview img {
+  max-width: 100% !important;
+  height: auto !important;
+  border-radius: 5px !important;
+  border: 1px solid #ddd !important;
+  transition: transform 0.3s ease !important;
+}
+
+.image-preview img:hover {
+  transform: scale(1.05) !important;
+}
+
+/* Sizes and prices section */
+.sizes-section {
+  margin-top: 10px !important;
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important; /* Center content horizontally */
+}
+
+.sizes-section h4 {
+  font-size: 1rem !important;
+  margin-bottom: 8px !important;
+  color: #555 !important;
+  font-family: 'Merriweather', serif !important;
+  text-align: center !important; /* Center heading text */
+}
+
+/* Table for sizes and prices */
+.sizes-section table {
+  width: 90% !important; /* Reduced width */
+  border-collapse: collapse !important;
+  margin-bottom: 8px !important;
+}
+
+.sizes-section table th,
+.sizes-section table td {
+  padding: 6px !important;
+  border: 1px solid #ddd !important;
+  text-align: center !important; /* Center table content */
+  font-size: 0.8rem !important;
+}
+
+.sizes-section table th {
+  background-color: #f5f5f5 !important;
+  font-weight: bold !important;
+}
+
+.sizes-section table input {
+  width: 90% !important; /* Reduced width */
+  padding: 3px !important;
+  border: 1px solid #ccc !important;
+  border-radius: 5px !important;
+  font-size: 0.8rem !important; /* Keep font size readable */
+  font-family: 'Lora', serif !important;
+  text-align: center !important; /* Center input text */
+}
+
+.sizes-section table button {
+  background-color: #C0C0C0 !important; /* Silver */
+  color: #333 !important; /* Dark text for contrast */
+  border: none !important;
+  padding: 3px 6px !important;
+  border-radius: 5px !important;
+  cursor: pointer !important;
+  font-size: 0.7rem !important;
+  transition: background-color 0.3s ease !important;
+  font-family: 'Lora', serif !important;
+}
+
+.sizes-section table button:hover {
+  background-color: #FFD700 !important; /* Gold on hover */
+}
+
+/* Add new size section */
+.add-size {
+  display: flex !important;
+  gap: 5px !important;
+  margin-top: 8px !important;
+  width: 90% !important; /* Reduced width */
+  justify-content: center !important; /* Center content horizontally */
+}
+
+.add-size input {
+  flex: 1 !important;
+  padding: 6px !important;
+  border: 1px solid #ccc !important;
+  border-radius: 5px !important;
+  font-size: 0.8rem !important; /* Keep font size readable */
+  font-family: 'Lora', serif !important;
+  width: 90% !important; /* Reduced width */
+  text-align: center !important; /* Center input text */
+}
+
+.add-size button {
+  background-color: #FFD700 !important; /* Gold */
+  color: #333 !important; /* Dark text for contrast */
+  border: none !important;
+  padding: 6px 10px !important;
+  border-radius: 5px !important;
+  cursor: pointer !important;
+  font-size: 0.8rem !important; /* Keep font size readable */
+  transition: background-color 0.3s ease !important;
+  font-family: 'Lora', serif !important;
+}
+
+.add-size button:hover {
+  background-color: #C0C0C0 !important; /* Silver on hover */
+}
+
+/* Update Item button specific style */
+.edit-menu-page button.update-item {
+  background-color: #FFD700 !important; /* Gold */
+  color: #333 !important; /* Dark text for contrast */
+  margin-top: 10px !important;
+  width: 90% !important; /* Reduced width */
+  font-family: 'Lora', serif !important;
+}
+
+.edit-menu-page button.update-item:hover {
+  background-color: #C0C0C0 !important; /* Silver on hover */
+}
+
+/* Remove Item button specific style */
+.edit-menu-page button.remove-item {
+  background-color: #C0C0C0 !important; /* Silver */
+  color: #333 !important; /* Dark text for contrast */
+  margin-top: 10px !important;
+  width: 90% !important; /* Reduced width */
+  font-family: 'Lora', serif !important;
+}
+
+.edit-menu-page button.remove-item:hover {
+  background-color: #FFD700 !important; /* Gold on hover */
+}
+
+/* Save Menu button */
+.edit-menu-page button.save-menu {
+  background-color: #FFD700 !important; /* Gold */
+  color: #333 !important; /* Dark text for contrast */
+  margin-top: 15px !important;
+  width: 90% !important; /* Reduced width */
+  max-width: 150px !important;
+  display: block !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  font-family: 'Lora', serif !important;
+}
+
+.edit-menu-page button.save-menu:hover {
+  background-color: #C0C0C0 !important; /* Silver on hover */
+}
+
+/* Responsive design for smaller screens */
+@media (max-width: 768px) {
+  .edit-menu-page {
+      padding: 3px !important;
+  }
+
+  .edit-menu-page h1 {
+      font-size: 1.3rem !important;
+      margin-bottom: 8px !important;
+  }
+
+  .menu-item {
+      padding: 8px !important;
+      margin-bottom: 8px !important;
+  }
+
+  .menu-item h3 {
+      font-size: 1rem !important;
+      margin-bottom: 6px !important;
+  }
+
+  .menu-item input,
+  .menu-item textarea,
+  .menu-item select {
+      padding: 4px !important;
+      font-size: 0.7rem !important; /* Keep font size readable */
+      margin-bottom: 6px !important;
+  }
+
+  .menu-item textarea {
+      min-height: 50px !important;
+  }
+
+  .sizes-section h4 {
+      font-size: 0.9rem !important;
+      margin-bottom: 6px !important;
+  }
+
+  .sizes-section table th,
+  .sizes-section table td {
+      padding: 4px !important;
+      font-size: 0.7rem !important;
+  }
+
+  .sizes-section table input {
+      padding: 2px !important;
+      font-size: 0.7rem !important; /* Keep font size readable */
+  }
+
+  .sizes-section table button {
+      padding: 2px 4px !important;
+      font-size: 0.6rem !important;
+  }
+
+  .add-size {
+      flex-direction: column !important;
+      gap: 3px !important;
+  }
+
+  .add-size input {
+      width: 90% !important; /* Reduced width */
+      padding: 4px !important;
+      font-size: 0.7rem !important; /* Keep font size readable */
+  }
+
+  .add-size button {
+      width: 90% !important; /* Reduced width */
+      padding: 4px !important;
+      font-size: 0.7rem !important; /* Keep font size readable */
+  }
+
+  .edit-menu-page button.update-item,
+  .edit-menu-page button.remove-item,
+  .edit-menu-page button.save-menu {
+      padding: 6px !important;
+      font-size: 0.7rem !important; /* Keep font size readable */
+  }
+}
+
+/* Responsive design for very small screens */
+@media (max-width: 480px) {
+  .edit-menu-page h1 {
+      font-size: 1.2rem !important;
+  }
+
+  .menu-item h3 {
+      font-size: 0.9rem !important;
+  }
+
+  .menu-item input,
+  .menu-item textarea,
+  .menu-item select {
+      font-size: 0.6rem !important; /* Keep font size readable */
+  }
+
+  .sizes-section table th,
+  .sizes-section table td {
+      font-size: 0.6rem !important;
+  }
+
+  .sizes-section table input {
+      font-size: 0.6rem !important; /* Keep font size readable */
+  }
+
+  .sizes-section table button {
+      font-size: 0.5rem !important;
+  }
+
+  .add-size input,
+  .add-size button {
+      font-size: 0.6rem !important; /* Keep font size readable */
+  }
+
+  .edit-menu-page button.update-item,
+  .edit-menu-page button.remove-item,
+  .edit-menu-page button.save-menu {
+      font-size: 0.6rem !important; /* Keep font size readable */
+  }
+}

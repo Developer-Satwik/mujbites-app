@@ -1,0 +1,439 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bodoni+Moda:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lexicon&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Baskervville&display=swap');
+
+/* Animation for menu items */
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.restaurant-menu-page {
+  padding: 15px;
+  background-color: #f8f9fa;
+  text-align: center;
+}
+
+.restaurant-image {
+  width: 100%;
+  max-height: 150px;
+  object-fit: cover;
+  margin-bottom: 10px;
+}
+
+.restaurant-name {
+  font-family: 'Bodoni Moda', serif;
+  font-size: 1.5rem;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.restaurant-address {
+  font-family: 'EB Garamond', serif;
+  font-size: 0.9rem;
+  color: #555;
+  margin-bottom: 15px;
+}
+
+.menu-section-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.2rem;
+  color: #333;
+  margin-top: 15px;
+  margin-bottom: 10px;
+  text-align: left;
+}
+
+.menu-title {
+  font-family: 'Baskervville', serif;
+  font-size: 1.5rem;
+  color: #333;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  text-align: left;
+}
+
+.menu-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 15px;
+  padding: 15px;
+}
+
+.menu-card {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 10px;
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+  opacity: 0;
+  animation: slideUp 0.5s ease-out forwards;
+}
+
+.menu-item-image {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.menu-card h4 {
+  font-family: 'Lexicon', serif;
+  margin-bottom: 6px;
+  color: #333;
+  font-size: 0.9rem;
+  font-weight: bold;
+}
+
+.menu-card p {
+  font-family: 'Lexicon', serif;
+  color: #555;
+  font-size: 0.7rem;
+}
+
+.dropdown-selector {
+  margin: 8px 0;
+}
+
+.dropdown-selector select {
+  font-family: 'Montserrat', sans-serif;
+  width: 100%;
+  padding: 6px 8px;
+  font-size: 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  outline: none;
+  cursor: pointer;
+  background-color: #fff;
+  transition: border-color 0.3s ease;
+}
+
+.dropdown-selector select:focus {
+  border-color: #007bff;
+}
+
+/* Quantity Counter */
+.quantity-counter {
+  font-family: 'Lexicon', serif;
+  display: flex;
+  align-items: center;
+  gap: 4px; /* Reduced gap between buttons and input */
+  justify-content: center;
+  font-size: 0.7rem; /* Smaller font size */
+  font-weight: 800;
+  margin-top: 4px;
+}
+
+.quantity-counter button {
+  font-family: 'Montserrat', sans-serif;
+  cursor: pointer;
+  background-color: #fac744;
+  color: #333;
+  border: none;
+  padding: 2px 6px; /* Reduced padding */
+  font-size: 0.7rem; /* Smaller font size */
+  font-weight: 800;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+  min-width: 24px; /* Ensure buttons have a minimum width */
+  width: 24px; /* Fixed width for buttons */
+  height: 24px; /* Fixed height for buttons */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.quantity-counter input {
+  width: 30px; /* Reduced width for input */
+  text-align: center;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.7rem; /* Smaller font size */
+  padding: 2px; /* Reduced padding */
+  height: 24px; /* Match button height */
+}
+
+.quantity-counter button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.quantity-counter button:active {
+  transform: translateY(1px); /* Subtle click effect */
+  box-shadow: none;
+}
+
+.quantity-counter button:hover:not(:disabled) {
+  background-color: #e6b800;
+}
+
+.add-to-cart-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 10px 0;
+}
+
+.add-to-cart {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 6px 20px;
+  gap: 8px;
+  background-color: #fac744;
+  outline: 2px #fac744 solid;
+  outline-offset: -2px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  transition: 400ms;
+  font-family: 'Lexicon', serif;
+  font-weight: 700;
+  font-size: 0.8rem;
+  color: black;
+}
+
+.add-to-cart .text {
+  color: black;
+  font-weight: 700;
+  font-size: 0.8rem;
+  transition: 400ms;
+}
+
+.add-to-cart:hover {
+  background-color: transparent;
+}
+
+.add-to-cart:hover .text {
+  color: #fac744;
+}
+
+.popup {
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #fac744;
+  color: #333;
+  text-align: center;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  z-index: 1100;
+  border-radius: 4px;
+  transition: opacity 0.3s ease-out;
+  opacity: 0;
+  visibility: hidden;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.popup.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Search Bar Styles */
+.search-bar {
+  margin-bottom: 15px;
+  display: flex;
+  justify-content: center; /* Center the search bar horizontally */
+  align-items: center;
+  width: 100%; /* Ensure it takes full width */
+}
+
+.search-bar input {
+  font-size: 12px;
+  padding: 6px 6px 6px 4px;
+  width: 100%; /* Full width of the container */
+  max-width: 300px; /* Limit the maximum width */
+  border: none;
+  border-bottom: 1px solid #515151;
+  background: transparent;
+  text-align: center; /* Center the text inside the input */
+}
+
+.search-bar input:focus {
+  outline: none;
+}
+
+.search-bar label {
+  color: #999;
+  font-size: 14px;
+  font-weight: normal;
+  position: absolute;
+  pointer-events: none;
+  left: 4px;
+  top: 6px;
+  transition: 0.2s ease all;
+}
+
+.search-bar input:focus ~ label,
+.search-bar input:valid ~ label {
+  top: -14px;
+  font-size: 10px;
+  color: #5264AE;
+}
+
+.bar {
+  position: relative;
+  display: block;
+  width: 100%;
+  max-width: 300px; /* Match the input's max-width */
+}
+
+.bar:before,
+.bar:after {
+  content: '';
+  height: 2px;
+  width: 0;
+  bottom: 1px;
+  position: absolute;
+  background: #5264AE;
+  transition: 0.2s ease all;
+}
+
+.bar:before {
+  left: 50%;
+}
+
+.bar:after {
+  right: 50%;
+}
+
+.search-bar input:focus ~ .bar:before,
+.search-bar input:focus ~ .bar:after {
+  width: 50%;
+}
+
+.highlight {
+  position: absolute;
+  height: 60%;
+  width: 80px;
+  top: 25%;
+  left: 0;
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+.search-bar input:focus ~ .highlight {
+  animation: inputHighlighter 0.3s ease;
+}
+
+@keyframes inputHighlighter {
+  from {
+    background: #5264AE;
+  }
+  to {
+    width: 0;
+    background: transparent;
+  }
+}
+
+/* Filter Icon and Dropdowns */
+.filter-icon {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px; /* Reduced padding */
+  margin-left: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent; /* Make the background transparent */
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+  width: auto; /* Let the width adjust to the icon size */
+  min-width: auto; /* Ensure no minimum width is enforced */
+}
+
+.filter-icon:hover {
+  background-color: rgba(250, 199, 68, 0.2); /* Light hover effect */
+}
+
+.filter-icon svg {
+  font-size: 1rem; /* Adjust icon size */
+  color: #333; /* Icon color */
+  margin: 0; /* Ensure no extra margin */
+}
+
+/* Ensure no other rules are overriding the filter button */
+button.filter-icon {
+  width: auto !important; /* Force the width to adjust to the icon */
+  min-width: auto !important; /* Ensure no minimum width is enforced */
+}
+
+.filters {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.filters label {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.9rem;
+  color: #333;
+  margin-right: 8px;
+}
+
+.filters select {
+  font-family: 'Montserrat', sans-serif;
+  padding: 6px 8px;
+  font-size: 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  outline: none;
+  cursor: pointer;
+  background-color: #fff;
+  transition: border-color 0.3s ease, background-color 0.3s ease;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23333%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+  background-repeat: no-repeat;
+  background-position: right 6px center;
+  background-size: 10px;
+  width: 100%;
+  max-width: 200px;
+}
+
+.filters select:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 4px rgba(0, 123, 255, 0.5);
+}
+
+.filters select:hover {
+  background-color: #f8f9fa;
+}
+
+.filters select option {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 12px;
+  padding: 6px 8px;
+  background-color: #fff;
+  color: #333;
+  transition: background-color 0.3s ease;
+}
+
+.filters select option:hover {
+  background-color: #f8f9fa;
+}

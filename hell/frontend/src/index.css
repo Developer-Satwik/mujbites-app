@@ -1,0 +1,170 @@
+html {
+  background-image: url('/background.png'); /* Correct path */
+  background-position: center; /* Center the background image */
+  background-repeat: no-repeat; /* Prevent the image from repeating */
+  background-attachment: fixed; /* Keep the background fixed while scrolling */
+  min-height: 100vh; /* Ensure the background covers the entire viewport */
+  background-size: cover; 
+}
+
+
+/* Adjust background size for smaller screens */
+@media (max-width: 768px) {
+  html {
+    background-size: contain; /* Ensure the entire image is visible on smaller screens */
+    background-position: top center; /* Align the background to the top */
+  }
+}
+
+/* Adjust background size for very small screens (e.g., iPhone SE) */
+@media (max-width: 375px) {
+  html {
+    background-size: 100% auto; /* Stretch the image horizontally while maintaining aspect ratio */
+    background-position: top center; /* Align the background to the top */
+  }
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: transparent; /* Ensure the body does not block the background */
+}
+
+/* Ensure containers do not block the background */
+.home-page {
+  background: transparent; /* Remove any background color */
+  min-height: 100vh; /* Ensure the container fills the screen */
+  padding: 20px; /* Reduced padding for mobile */
+  padding-top: 80px; /* Adjusted padding-top for mobile */
+  font-family: 'Roboto', Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%; /* Ensure it takes the full width */
+  box-sizing: border-box; /* Include padding in the width calculation */
+}
+
+/* Add this if you have other containers that might block the background */
+.container {
+  background: transparent; /* Make containers transparent */
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .home-page {
+    padding: 10px; /* Further reduce padding for smaller screens */
+    padding-top: 60px; /* Adjust padding-top for smaller screens */
+  }
+
+  /* Adjust font sizes for better readability on mobile */
+  h1 {
+    font-size: 24px; /* Smaller heading size for mobile */
+  }
+
+  h2 {
+    font-size: 20px; /* Smaller subheading size for mobile */
+  }
+
+  h3 {
+    font-size: 18px; /* Smaller subheading size for mobile */
+  }
+
+  p {
+    font-size: 14px; /* Smaller paragraph size for mobile */
+  }
+
+  /* Adjust button sizes for easier tapping on mobile */
+  button {
+    padding: 10px 20px; /* Larger tap target */
+    font-size: 16px; /* Larger font size for buttons */
+    min-width: 120px; /* Ensure buttons are wide enough for easy tapping */
+  }
+
+  /* Ensure flex containers stack vertically on mobile */
+  .home-page {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Adjust the search bar for mobile */
+  .search-container {
+    width: 100%; /* Full width for mobile */
+    padding: 0 10px; /* Add some padding to avoid touching the edges */
+  }
+
+  .search-input {
+    font-size: 14px; /* Smaller font size for mobile */
+    padding: 10px 2.5rem; /* Adjust padding for mobile */
+  }
+
+  .search-icon {
+    left: 0.5rem; /* Adjust icon position for mobile */
+  }
+
+  /* Adjust restaurant cards for mobile */
+  .restaurant-card {
+    padding: 10px; /* Reduce padding for mobile */
+  }
+
+  .restaurant-card img {
+    height: 120px; /* Smaller image height for mobile */
+  }
+
+  .restaurant-info h3 {
+    font-size: 16px; /* Smaller heading size for mobile */
+  }
+
+  .restaurant-info p {
+    font-size: 12px; /* Smaller paragraph size for mobile */
+  }
+}
+
+/* Additional adjustments for very small screens (e.g., iPhone SE) */
+@media (max-width: 375px) {
+  .home-page {
+    padding-top: 50px; /* Further reduce padding-top for very small screens */
+  }
+
+  h1 {
+    font-size: 20px; /* Even smaller heading size for very small screens */
+  }
+
+  h2 {
+    font-size: 18px; /* Even smaller subheading size for very small screens */
+  }
+
+  h3 {
+    font-size: 16px; /* Even smaller subheading size for very small screens */
+  }
+
+  p {
+    font-size: 12px; /* Even smaller paragraph size for very small screens */
+  }
+
+  button {
+    padding: 8px 16px; /* Smaller padding for very small screens */
+    font-size: 14px; /* Smaller font size for buttons */
+  }
+
+  .search-input {
+    font-size: 12px; /* Smaller font size for search input on very small screens */
+  }
+
+  .restaurant-card img {
+    height: 100px; /* Smaller image height for very small screens */
+  }
+
+  .restaurant-info h3 {
+    font-size: 14px; /* Smaller heading size for very small screens */
+  }
+
+  .restaurant-info p {
+    font-size: 10px; /* Smaller paragraph size for very small screens */
+  }
+}
