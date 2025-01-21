@@ -3,7 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 import ReCAPTCHA from "react-google-recaptcha";
 import "./Signup.css";
 import Loader from "../../Loader/Loader";
-import api from "../../utils/api"; // Import the configured Axios instance
 
 function Signup({ onSignup }) {
   const [name, setName] = useState("");
@@ -80,22 +79,40 @@ function Signup({ onSignup }) {
     setIsLoading(true);
 
     try {
-      // Send the signup request to the backend
-      const response = await api.post('/api/users/register', {
-        username: name,
-        mobileNumber,
-        password,
-        recaptchaToken, // Include the reCAPTCHA token in the request
+      const response = await fetch('/api/users/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: name,
+          mobileNumber,
+          password,
+          recaptchaToken, // Include the reCAPTCHA token in the request
+        }),
       });
 
-      if (response.data.token && response.data.user) {
+      if (!response.ok) {
+        let errorMessage = "Signup failed! Please try again.";
+        if (response.status === 400) {
+          errorMessage = "Invalid input data.";
+        } else if (response.status === 409) {
+          errorMessage = "User already exists with this mobile number.";
+        } else if (response.status === 500) {
+          errorMessage = "Server error. Please try again later.";
+        }
+        throw new Error(errorMessage);
+      }
+
+      const data = await response.json();
+      if (data.token && data.user) {
         // Store user data in localStorage
-        localStorage.setItem('userToken', response.data.token);
-        localStorage.setItem('userRole', response.data.user.role);
-        localStorage.setItem('userId', response.data.user._id);
+        localStorage.setItem('userToken', data.token);
+        localStorage.setItem('userRole', data.user.role);
+        localStorage.setItem('userId', data.user._id);
 
         // Trigger onSignup callback with user data and token
-        onSignup(response.data.user, response.data.token);
+        onSignup(data.user, data.token);
 
         // Redirect to home page
         navigate('/');
@@ -104,25 +121,7 @@ function Signup({ onSignup }) {
       }
     } catch (error) {
       console.error("Signup error:", error);
-      let errorMessage = "Signup failed! Please try again.";
-      if (error.response) {
-        switch (error.response.status) {
-          case 400:
-            errorMessage = error.response.data.message || "Invalid input data.";
-            break;
-          case 409:
-            errorMessage = "User already exists with this mobile number.";
-            break;
-          case 500:
-            errorMessage = "Server error. Please try again later.";
-            break;
-          default:
-            errorMessage = error.response.data.message || errorMessage;
-        }
-      } else if (error.request) {
-        errorMessage = "Cannot connect to the server. Please check your internet connection.";
-      }
-      showPopup(errorMessage, "error");
+      showPopup(error.message, "error");
     } finally {
       setIsLoading(false);
       if (recaptchaRef.current) {

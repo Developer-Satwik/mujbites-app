@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../utils/api'; // Use the centralized API utility
 import './Cart.css';
 
 const Cart = ({ cartItems, onClose, updateQuantity, clearCart, restaurantStatus }) => {
@@ -21,7 +20,7 @@ const Cart = ({ cartItems, onClose, updateQuantity, clearCart, restaurantStatus 
     localStorage.setItem('cartItems', JSON.stringify(cartItems));
   }, [cartItems]);
 
-  // Check if the user is logged in and fetch their address
+  // Check if the user is logged in and fetch their user ID
   useEffect(() => {
     const token = localStorage.getItem('userToken');
     const storedUserId = localStorage.getItem('userId');
@@ -32,34 +31,33 @@ const Cart = ({ cartItems, onClose, updateQuantity, clearCart, restaurantStatus 
   // Fetch the user's address if logged in
   useEffect(() => {
     const fetchUserAddress = async () => {
-      try {
-        const token = localStorage.getItem('userToken');
-        if (!token) {
-          console.error('No token found in localStorage');
-          return;
-        }
+      const token = localStorage.getItem('userToken');
+      if (!token) {
+        console.error('No token found in localStorage');
+        return;
+      }
 
-        const response = await api.get('/api/users/profile', {
+      try {
+        const response = await fetch('/api/users/profile', {
+          method: 'GET',
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
 
-        if (response.status === 200 && response.data) {
-          setAddress(response.data.address || '');
-        } else {
-          console.error('Unexpected response:', response);
-          setError('Error fetching user address. Please try again.');
-        }
-      } catch (error) {
-        console.error('Error fetching user address:', error);
-        if (error.response?.status === 401) {
+        if (response.ok) {
+          const data = await response.json();
+          setAddress(data.address || '');
+        } else if (response.status === 401) {
           setError('Your session has expired. Please log in again.');
-        } else if (error.response?.status === 404) {
+        } else if (response.status === 404) {
           setError('User profile not found. Please contact support.');
         } else {
           setError('Error fetching user address. Please try again.');
         }
+      } catch (error) {
+        console.error('Error fetching user address:', error);
+        setError('Error fetching user address. Please try again.');
       }
     };
 
@@ -115,30 +113,27 @@ const Cart = ({ cartItems, onClose, updateQuantity, clearCart, restaurantStatus 
       return;
     }
 
+    const token = localStorage.getItem('userToken');
+    if (!token) {
+      setShowLoginPrompt(true);
+      return;
+    }
+
     try {
-      const token = localStorage.getItem('userToken');
-      if (!token) {
-        setShowLoginPrompt(true);
-        return;
-      }
+      const addressResponse = await fetch('/api/users/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ address }),
+      });
 
-      // Update the user's address using the general profile update endpoint
-      const addressResponse = await api.put(
-        '/api/users/profile',
-        { address },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (addressResponse.status === 200) {
+      if (addressResponse.ok) {
         setShowAddressPopup(false);
         setIsEditingAddress(false);
         setIsPlacingOrder(true);
 
-        // Prepare the order data
         const orderData = {
           restaurant: cartItems[0].restaurantId,
           restaurantName: cartItems[0].restaurantName,
@@ -152,14 +147,16 @@ const Cart = ({ cartItems, onClose, updateQuantity, clearCart, restaurantStatus 
           address: address,
         };
 
-        // Place the order
-        const orderResponse = await api.post('/api/orders', orderData, {
+        const orderResponse = await fetch('/api/orders', {
+          method: 'POST',
           headers: {
+            'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
           },
+          body: JSON.stringify(orderData),
         });
 
-        if (orderResponse.status === 201) {
+        if (orderResponse.ok) {
           setOrderPlaced(true);
           clearCart();
 
@@ -167,17 +164,15 @@ const Cart = ({ cartItems, onClose, updateQuantity, clearCart, restaurantStatus 
             setOrderPlaced(false);
             navigate('/your-orders');
           }, 3000);
+        } else {
+          throw new Error('Error placing order. Please try again.');
         }
+      } else {
+        throw new Error('Error saving address. Please try again.');
       }
     } catch (error) {
       console.error('Error saving address or placing order:', error);
-      if (error.response?.status === 401) {
-        setShowLoginPrompt(true);
-      } else if (error.response?.status === 404) {
-        setError('Restaurant or user not found. Please contact support.');
-      } else {
-        setError('Error saving address or placing order. Please try again.');
-      }
+      setError('Error saving address or placing order. Please try again.');
       setIsPlacingOrder(false);
     }
   };
@@ -189,7 +184,7 @@ const Cart = ({ cartItems, onClose, updateQuantity, clearCart, restaurantStatus 
           <h2>Your Cart</h2>
           <h3>{cartItems[0]?.restaurantName}</h3>
           <button className="close-button" onClick={onClose}>
-            &#10005; {/* X icon */}
+            &#10005;
           </button>
           <button className="clear-cart-button" onClick={clearCart}>
             Clear Cart
@@ -212,7 +207,6 @@ const Cart = ({ cartItems, onClose, updateQuantity, clearCart, restaurantStatus 
                   <div className="item-quantity">
                     <button
                       className="quantity-btn"
-                      aria-label="Decrease quantity"
                       onClick={() => updateQuantity(item.id, item.size, -1)}
                     >
                       -
@@ -220,7 +214,6 @@ const Cart = ({ cartItems, onClose, updateQuantity, clearCart, restaurantStatus 
                     <span>x {item.quantity}</span>
                     <button
                       className="quantity-btn"
-                      aria-label="Increase quantity"
                       onClick={() => updateQuantity(item.id, item.size, 1)}
                       disabled={totalItemsInCart >= 20}
                     >
@@ -250,15 +243,6 @@ const Cart = ({ cartItems, onClose, updateQuantity, clearCart, restaurantStatus 
               >
                 {isPlacingOrder ? 'Placing Order...' : 'Place Order'}
               </button>
-              {calculateTotal() < 100 && (
-                <p className="minimum-order-error">Minimum order amount is ₹100.</p>
-              )}
-              {totalItemsInCart > 20 && (
-                <p className="maximum-items-error">You cannot have more than 20 items in your cart.</p>
-              )}
-              {restaurantStatus === 'closed' && (
-                <p className="restaurant-closed-error">The restaurant is currently closed. Please try again later.</p>
-              )}
             </div>
           </>
         )}
@@ -279,26 +263,21 @@ const Cart = ({ cartItems, onClose, updateQuantity, clearCart, restaurantStatus 
         )}
 
         {showLoginPrompt && (
-          <div className="popup show login-prompt">
+          <div className="popup login-prompt">
             <p>Please log in to place your order</p>
-            <button onClick={handleRedirectToLogin} className="login-button">
-              Login
-            </button>
-            <button onClick={() => setShowLoginPrompt(false)} className="cancel-button">
-              Cancel
-            </button>
+            <button onClick={handleRedirectToLogin}>Login</button>
+            <button onClick={() => setShowLoginPrompt(false)}>Cancel</button>
           </div>
         )}
 
         {orderPlaced && (
-          <div className="popup show">
+          <div className="popup">
             <p>Order placed successfully!</p>
-            <p className="waiting-text">Waiting for confirmation...</p>
           </div>
         )}
 
         {error && (
-          <div className="popup error show">
+          <div className="popup error">
             <p>{error}</p>
             <button onClick={() => setError(null)}>Close</button>
           </div>

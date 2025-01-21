@@ -18,7 +18,6 @@ import Cart from "./components/Cart/Cart";
 import YourOrders from "./components/Orders/YourOrders";
 import Profile from "./components/Profile/Profile";
 import "./App.css";
-import api from "./components/utils/api";
 import { getMessaging, deleteToken, onMessage } from "firebase/messaging";
 import { initializeApp } from "firebase/app";
 
@@ -78,21 +77,22 @@ function App() {
         return;
       }
 
-      const response = await api.get("/api/users/notifications", {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/users/notifications`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
-      if (response.data.notifications) {
-        setNotifications(response.data.notifications);
+      if (!response.ok) {
+        throw new Error("Failed to fetch notifications");
+      }
+
+      const data = await response.json();
+      if (data.notifications) {
+        setNotifications(data.notifications);
       }
     } catch (error) {
-      if (error.response?.status === 429) {
-        console.error("Rate limit exceeded. Please try again later.");
-      } else {
-        console.error("Error fetching notifications:", error);
-      }
+      console.error("Error fetching notifications:", error);
     }
   };
 
@@ -118,13 +118,17 @@ function App() {
   const markNotificationAsRead = useCallback(async (notificationId) => {
     try {
       const token = localStorage.getItem("userToken");
-      await api.patch(
-        `/api/notifications/${notificationId}/read`,
-        {},
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/notifications/${notificationId}/read`, {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to mark notification as read");
+      }
+
       setNotifications((prev) =>
         prev.map((notification) =>
           notification.id === notificationId
@@ -141,9 +145,17 @@ function App() {
   const clearAllNotifications = useCallback(async () => {
     try {
       const token = localStorage.getItem("userToken");
-      await api.delete("/api/notifications", {
-        headers: { Authorization: `Bearer ${token}` },
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/notifications`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
+
+      if (!response.ok) {
+        throw new Error("Failed to clear notifications");
+      }
+
       setNotifications([]);
     } catch (error) {
       console.error("Error clearing all notifications:", error);
@@ -204,18 +216,29 @@ function App() {
       const fcmToken = localStorage.getItem("fcmToken");
       if (fcmToken) {
         try {
-          await api.post("/api/tokens/register-token", {
-            token: fcmToken,
-            userId: user._id,
-            device: {
-              platform: navigator.platform,
-              userAgent: navigator.userAgent,
+          const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/tokens/register-token`, {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
             },
+            body: JSON.stringify({
+              token: fcmToken,
+              userId: user._id,
+              device: {
+                platform: navigator.platform,
+                userAgent: navigator.userAgent,
+              },
+            }),
           });
+
+          if (!response.ok) {
+            throw new Error("Failed to register FCM token");
+          }
+
           console.log("FCM token registered successfully");
         } catch (fcmError) {
           console.error("Failed to register FCM token:", fcmError);
-          // Continue with login even if FCM registration fails
         }
       }
     } catch (error) {
@@ -268,8 +291,11 @@ function App() {
       try {
         const fcmToken = localStorage.getItem("fcmToken");
         if (fcmToken) {
-          await api.post("/api/tokens/deactivate-token", {
-            token: fcmToken,
+          await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/tokens/deactivate-token`, {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${fcmToken}`,
+            },
           });
         }
         await deleteToken(messaging);
@@ -390,22 +416,28 @@ function App() {
           return;
         }
 
-        const response = await api.post(
-          "/api/orders",
-          {
+        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/orders`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
             restaurant: restaurantId,
             restaurantName,
             customer: userId,
             items,
             totalAmount,
             address,
-          },
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+          }),
+        });
 
-        if (response.data) {
+        if (!response.ok) {
+          throw new Error("Failed to place order");
+        }
+
+        const data = await response.json();
+        if (data) {
           clearCart();
           closeCart();
           addNotification("Order placed successfully!");

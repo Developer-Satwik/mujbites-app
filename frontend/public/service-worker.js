@@ -86,7 +86,7 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
   // For API requests, bypass cache completely
-  if (isApiRequest(url.href)) {
+  if (isApiRequest(url.)) {
     event.respondWith(
       fetch(event.request)
         .catch(error => {
@@ -98,7 +98,7 @@ self.addEventListener('fetch', (event) => {
   }
 
   // For static assets that should be cached
-  if (shouldCache(url.href)) {
+  if (shouldCache(url.)) {
     event.respondWith(
       caches.match(event.request)
         .then(cachedResponse => {

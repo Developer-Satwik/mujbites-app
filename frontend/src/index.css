@@ -1,5 +1,5 @@
 html {
-  background-image: url('/background.png'); /* Correct path */
+  background-image: url('../background.png'); /* Correct path */
   background-position: center; /* Center the background image */
   background-repeat: no-repeat; /* Prevent the image from repeating */
   background-attachment: fixed; /* Keep the background fixed while scrolling */

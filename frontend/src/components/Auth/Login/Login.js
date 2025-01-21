@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import ReCAPTCHA from "react-google-recaptcha";
 import "./Login.css";
 import Loader from "../../Loader/Loader";
-import api from "../../utils/api"; // Import the configured Axios instance
 
 function Login({ onLogin }) {
   const [formErrors, setFormErrors] = useState({});
@@ -65,51 +64,49 @@ function Login({ onLogin }) {
       // Log the reCAPTCHA token for debugging
       console.log('reCAPTCHA Token:', recaptchaToken);
 
-      // Proceed with login API call
-      const loginResponse = await api.post('/api/users/login', {
-        mobileNumber: mobileNumberRef.current.value,
-        password: passwordRef.current.value,
-        recaptchaToken, // Include the token in the login request
+      // Proceed with login API call using fetch
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/users/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          mobileNumber: mobileNumberRef.current.value,
+          password: passwordRef.current.value,
+          recaptchaToken, // Include the token in the login request
+        }),
       });
 
-      if (loginResponse.data.token && loginResponse.data.user) {
+      // Check if the response is successful
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Login failed");
+      }
+
+      // Parse the response data
+      const data = await response.json();
+
+      if (data.token && data.user) {
         // Store user data in localStorage
-        localStorage.setItem('userToken', loginResponse.data.token);
-        localStorage.setItem('userRole', loginResponse.data.user.role);
-        localStorage.setItem('userId', loginResponse.data.user._id);
+        localStorage.setItem("userToken", data.token);
+        localStorage.setItem("userRole", data.user.role);
+        localStorage.setItem("userId", data.user._id);
 
         // Trigger onLogin callback with user data and token
-        onLogin(loginResponse.data.user, loginResponse.data.token);
+        onLogin(data.user, data.token);
 
         // Redirect to home page
-        navigate('/');
+        navigate("/");
       }
     } catch (error) {
-      console.error('Login error:', error);
-      let errorMessage = 'Login failed! Please try again.';
+      console.error("Login error:", error);
+      let errorMessage = "Login failed! Please try again.";
 
-      if (error.response) {
-        switch (error.response.status) {
-          case 400:
-            errorMessage = error.response.data.message || 'Invalid input data.';
-            // Reset reCAPTCHA if verification failed
-            if (error.response.data.message?.includes('reCAPTCHA')) {
-              recaptchaRef.current?.reset();
-              setRecaptchaToken(null);
-            }
-            break;
-          case 401:
-            errorMessage = 'Invalid mobile number or password';
-            break;
-          case 404:
-            errorMessage = 'Account not found. Please sign up first';
-            break;
-          default:
-            errorMessage = error.response.data.message || errorMessage;
-        }
+      if (error.message) {
+        errorMessage = error.message;
       }
 
-      setPopup({ message: errorMessage, type: 'error', show: true });
+      setPopup({ message: errorMessage, type: "error", show: true });
       setTimeout(() => setPopup((prev) => ({ ...prev, show: false })), 3000);
     } finally {
       setIsLoading(false);
