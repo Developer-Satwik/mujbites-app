@@ -32,7 +32,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'My App',
+      title: 'MujBites',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: AppTheme.primary),
         useMaterial3: true,

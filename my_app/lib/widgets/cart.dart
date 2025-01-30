@@ -31,9 +31,25 @@ class _CartWidgetState extends State<CartWidget> {
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('token');
+      final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
       
-      if (token == null) {
-        throw Exception('Not authenticated');
+      if (token == null || !isLoggedIn) {
+        // Close cart before navigation
+        widget.onClose();
+        
+        if (!mounted) return;
+        
+        // Show message and navigate to login
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please login to place an order'),
+            backgroundColor: Colors.orange,
+            duration: Duration(seconds: 2),
+          ),
+        );
+        
+        Navigator.pushReplacementNamed(context, '/login');
+        return;
       }
 
       // Fetch existing address
@@ -67,6 +83,7 @@ class _CartWidgetState extends State<CartWidget> {
     }
 
     try {
+      setState(() => _isOrdering = true);
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('token');
       
@@ -88,6 +105,10 @@ class _CartWidgetState extends State<CartWidget> {
       );
 
       cartProvider.clearCart();
+      
+      // Close the address dialog first
+      Navigator.pop(context);
+      // Then close the cart widget
       widget.onClose();
       
       ScaffoldMessenger.of(context).showSnackBar(
@@ -103,6 +124,10 @@ class _CartWidgetState extends State<CartWidget> {
           backgroundColor: Colors.red,
         ),
       );
+    } finally {
+      if (mounted) {
+        setState(() => _isOrdering = false);
+      }
     }
   }
 

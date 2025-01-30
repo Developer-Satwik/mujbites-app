@@ -228,13 +228,19 @@ class _RestaurantPanelScreenState extends State<RestaurantPanelScreen> {
 
   Future<void> _initializeNotifications() async {
     await _notificationService.initialize();
+    
+    // Check notification permissions
+    final hasPermission = await _notificationService.checkNotificationPermissions();
+    if (!hasPermission && mounted) {
+      // Show custom permission dialog
+      await _notificationService.showPermissionDialog(context);
+    }
+    
     await _notificationService.connectToWebSocket();
     
     _notificationService.onNewOrder = (orderData) {
-      // Refresh orders when new order is received
       _fetchOrders();
       
-      // Show a snackbar if the screen is mounted
       if (mounted) {
         final orderId = orderData['_id'].toString();
         final shortOrderId = orderId.substring(orderId.length - 6);

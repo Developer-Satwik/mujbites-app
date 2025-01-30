@@ -3,5 +3,11 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <!-- ... rest of your manifest file ... -->
+    <application
+        android:label="MujBites"
+        ...
+    >
+    </application>
 </manifest> 

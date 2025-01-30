@@ -1,5 +1,5 @@
-name: my_app
-description: "A new Flutter project"
+name: mujbites
+description: "Food delivery app for MUJ campus"
 
 # Specify Flutter SDK version
 environment:
@@ -19,6 +19,7 @@ dependencies:
   lottie: ^3.0.0
   glassmorphism_ui: ^0.3.0
   rive: ^0.12.4
+  permission_handler: ^11.0.1
 
 dev_dependencies:
   flutter_test:
