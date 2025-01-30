@@ -226,64 +226,86 @@ const deleteUser = async (req, res) => {
 const login = async (req, res) => {
   try {
     const { mobileNumber, password } = req.body;
-
+    
     console.log('Login attempt for:', mobileNumber);
-
+    
     const user = await User.findOne({ mobileNumber })
-      .populate('restaurant')
-      .select('+password');
+      .select('+password')
+      .populate('restaurant');
+    
+    console.log('Found user:', {
+      id: user?._id,
+      role: user?.role,
+      restaurantId: user?.restaurant
+    });
 
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found with this mobile number'
-      });
-    }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid credentials'
+        message: 'Invalid mobile number or password'
       });
     }
 
-    // Ensure userId is a string
-    const userId = user._id.toString();
+    const isValidPassword = await bcrypt.compare(password, user.password);
+    if (!isValidPassword) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid mobile number or password'
+      });
+    }
 
-    // Create token with user ID and role
+    // Get restaurant data if user is a restaurant owner
+    let restaurantData = null;
+    if (user.role === 'restaurant') {
+      restaurantData = await Restaurant.findOne({ owner: user._id });
+      console.log('Found restaurant:', restaurantData?._id);
+      
+      if (restaurantData && !user.restaurant) {
+        user.restaurant = restaurantData._id;
+        await user.save();
+        console.log('Updated user with restaurant:', user.restaurant);
+      }
+    }
+
     const token = jwt.sign(
-      { userId, role: user.role },
+      { 
+        userId: user._id, 
+        role: user.role,
+        restaurantId: restaurantData?._id
+      },
       process.env.JWT_SECRET,
-      { expiresIn: '72h' }
+      { expiresIn: '7d' }
     );
 
-    // Create response object
-    const responseData = {
+    const response = {
       success: true,
       token,
       user: {
-        _id: userId,
+        _id: user._id,
         username: user.username,
-        role: user.role,
         mobileNumber: user.mobileNumber,
-        restaurant: user.restaurant?._id?.toString()
-      },
-      message: 'Login successful'
+        role: user.role,
+        address: user.address,
+        restaurant: restaurantData ? {
+          _id: restaurantData._id,
+          name: restaurantData.name,
+          address: restaurantData.address,
+          isActive: restaurantData.isActive
+        } : null
+      }
     };
 
-    console.log('Login successful:', {
-      userId: responseData.user._id,
-      role: responseData.user.role,
-      hasRestaurant: !!responseData.user.restaurant
+    console.log('Sending response:', {
+      role: response.user.role,
+      hasRestaurant: !!response.user.restaurant
     });
 
-    res.status(200).json(responseData);
+    res.json(response);
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error during login',
+      message: 'Error during login',
       error: error.message
     });
   }

@@ -18,7 +18,7 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true,
-    select: false // Don't include password by default
+    select: false  // This ensures password isn't returned in queries by default
   },
   role: {
     type: String,
@@ -27,7 +27,8 @@ const userSchema = new mongoose.Schema({
   },
   restaurant: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Restaurant'
+    ref: 'Restaurant',
+    default: null
   },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
@@ -43,6 +44,12 @@ userSchema.pre('save', async function(next) {
   try {
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
+    if (this.isModified('role') && this.role === 'restaurant') {
+      const restaurant = await mongoose.model('Restaurant').findOne({ owner: this._id });
+      if (restaurant && !this.restaurant) {
+        this.restaurant = restaurant._id;
+      }
+    }
     next();
   } catch (error) {
     next(error);

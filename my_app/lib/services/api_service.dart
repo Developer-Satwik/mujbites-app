@@ -4,6 +4,7 @@ import 'dart:async';  // Add this import for TimeoutException
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:my_app/services/user_preferences.dart';
 
 class ApiService {
   static String get baseUrl {
@@ -22,14 +23,9 @@ class ApiService {
     return uri;
   }
 
-  Future<String?> _getToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('token');
-  }
-
   Future<Map<String, String>> getHeaders([String? token]) async {
     if (token == null) {
-      token = await _getToken();
+      token = await UserPreferences.getToken();
     }
     return {
       'Content-Type': 'application/json',
@@ -41,56 +37,34 @@ class ApiService {
     String method = 'GET',
     Map<String, dynamic>? body,
   }) async {
-    final token = await _getToken();
-    if (token == null) {
-      throw Exception('No authentication token found');
-    }
-
-    final headers = {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $token',
-    };
-
-    final uri = Uri.parse('$baseUrl$path');
-    http.Response response;
-
     try {
+      final headers = await getHeaders();
+      final uri = getUri(path);
+      
+      http.Response response;
+      
       switch (method) {
         case 'GET':
           response = await http.get(uri, headers: headers);
           break;
         case 'POST':
-          response = await http.post(
-            uri,
-            headers: headers,
-            body: json.encode(body),
-          );
+          response = await http.post(uri, headers: headers, body: jsonEncode(body));
           break;
         case 'PUT':
-          response = await http.put(
-            uri,
-            headers: headers,
-            body: json.encode(body),
-          );
+          response = await http.put(uri, headers: headers, body: jsonEncode(body));
           break;
         default:
-          throw Exception('Unsupported HTTP method');
+          throw Exception('Unsupported method: $method');
       }
 
-      if (response.statusCode == 401) {
-        // Handle token expiration
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.clear();
-        throw Exception('Authentication failed');
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return jsonDecode(response.body);
+      } else {
+        throw Exception('Request failed with status: ${response.statusCode}');
       }
-
-      if (response.statusCode == 403) {
-        throw Exception('Not authorized to perform this action');
-      }
-
-      return json.decode(response.body);
     } catch (e) {
-      throw Exception(e.toString());
+      print('API request error: $e');
+      rethrow;
     }
   }
 
@@ -130,7 +104,8 @@ class ApiService {
 
   Future<Map<String, dynamic>> login(String mobileNumber, String password) async {
     try {
-      print('Attempting login for mobile: $mobileNumber');
+      print('\n=== API Login Request ===');
+      print('Mobile: $mobileNumber');
       
       final response = await http.post(
         getUri('/users/login'),
@@ -141,77 +116,17 @@ class ApiService {
         }),
       );
 
-      print('Login response status: ${response.statusCode}');
-      print('Raw login response body: ${response.body}');
+      print('Response status: ${response.statusCode}');
+      final responseData = jsonDecode(response.body);
+      print('Response data: $responseData');
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        print('Parsed login data: $data');
-
-        // Clear existing preferences first
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.clear();
-
-        // Extract and validate user data
-        final user = data['user'] as Map<String, dynamic>;
-        print('User data from response: $user');
-
-        // Validate required fields
-        if (!user.containsKey('_id')) {
-          throw Exception('User ID missing from response');
-        }
-
-        final userId = user['_id'].toString();
-        final token = data['token'].toString();
-        final role = user['role']?.toString() ?? 'user';
-
-        print('Extracted credentials before storage:');
-        print('userId: "$userId"');
-        print('token length: ${token.length}');
-        print('role: "$role"');
-
-        // Store each credential individually and verify immediately
-        await prefs.setString('userId', userId);
-        final storedId = prefs.getString('userId');
-        print('Stored userId: "$storedId"');
-        if (storedId != userId) {
-          throw Exception('Failed to store userId correctly');
-        }
-
-        await prefs.setString('token', token);
-        final storedToken = prefs.getString('token');
-        if (storedToken != token) {
-          throw Exception('Failed to store token correctly');
-        }
-
-        await prefs.setString('role', role);
-        final storedRole = prefs.getString('role');
-        if (storedRole != role) {
-          throw Exception('Failed to store role correctly');
-        }
-
-        await prefs.setBool('isLoggedIn', true);
-        final isLoggedIn = prefs.getBool('isLoggedIn');
-        if (isLoggedIn != true) {
-          throw Exception('Failed to store login status');
-        }
-
-        print('Final stored credentials:');
-        print('userId: "$storedId"');
-        print('token exists: ${storedToken != null}');
-        print('role: "$storedRole"');
-        print('isLoggedIn: $isLoggedIn');
-
-        return data;
+        return responseData;
       } else {
-        final error = jsonDecode(response.body);
-        throw Exception(error['message'] ?? 'Login failed');
+        throw Exception('Login failed');
       }
     } catch (e) {
       print('Login error: $e');
-      // Clear preferences on login error
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.clear();
       rethrow;
     }
   }
@@ -219,7 +134,6 @@ class ApiService {
   // Restaurant Methods
   Future<List<Map<String, dynamic>>> getAllRestaurants() async {
     try {
-      print('Fetching restaurants from: $baseUrl/restaurants');
       final response = await http.get(
         getUri('/restaurants'),
         headers: await getHeaders(),
@@ -230,76 +144,59 @@ class ApiService {
         },
       );
 
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
-
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
         return data.cast<Map<String, dynamic>>();
       } else {
         throw Exception('Failed to load restaurants: ${response.statusCode}');
       }
-    } on SocketException catch (e) {
-      print('Socket Exception: $e');
-      throw Exception('Network error: Please check your internet connection');
-    } on TimeoutException catch (e) {
-      print('Timeout Exception: $e');
-      throw Exception('Request timed out: Please try again');
     } catch (e) {
-      print('Error fetching restaurants: $e');
       rethrow;
     }
   }
 
   Future<Map<String, dynamic>> getRestaurantById(String id) async {
     try {
-      print('Fetching restaurant details from: $baseUrl/restaurants/$id');
       final response = await http.get(
         getUri('/restaurants/$id'),
         headers: await getHeaders(),
       );
 
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
+      print('API Response Status: ${response.statusCode}'); // Debug print
+      print('API Response Body: ${response.body}'); // Debug print
 
       if (response.statusCode == 200) {
-        return jsonDecode(response.body);
+        final data = jsonDecode(response.body);
+        if (data['menu'] == null) {
+          // Ensure menu is at least an empty list if null
+          data['menu'] = [];
+        } else if (data['menu'] is Map) {
+          // If menu is a single item (Map), convert to List
+          data['menu'] = [data['menu']];
+        }
+        return data;
       } else {
         throw Exception('Failed to load restaurant details');
       }
     } catch (e) {
-      print('Error fetching restaurant: $e');
+      print('API Error: $e'); // Debug print
       rethrow;
     }
   }
 
-  Future<Map<String, dynamic>> getRestaurantMenu(String id) async {
+  Future<Map<String, dynamic>> getRestaurantMenu(String restaurantId) async {
     try {
-      print('Fetching menu from: $baseUrl/restaurants/$id/menu');
       final response = await http.get(
-        getUri('/restaurants/$id/menu'),
+        getUri('/restaurants/$restaurantId/menu'),
         headers: await getHeaders(),
-      ).timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          throw TimeoutException('Request timed out');
-        },
       );
 
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
-
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        print('Parsed menu data: $data');
-        return data;
-      } else if (response.statusCode == 404) {
-        throw Exception('Restaurant not found');
+        return jsonDecode(response.body);
       } else {
-        throw Exception('Failed to load restaurant menu: ${response.statusCode}');
+        throw Exception('Failed to load menu');
       }
     } catch (e) {
-      print('Error fetching menu: $e');
       rethrow;
     }
   }
@@ -365,16 +262,6 @@ class ApiService {
     }
   }
 
-  Future<void> logout() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.clear();
-    } catch (e) {
-      print('Logout error: $e');
-      rethrow;
-    }
-  }
-
   // Cart Methods
   Future<void> addToCart(String restaurantId, String itemId, int quantity, {String? size}) async {
     try {
@@ -419,46 +306,21 @@ class ApiService {
   // Restaurant owner specific methods
   Future<Map<String, dynamic>> getRestaurantByOwnerId() async {
     try {
-      final userId = await _getUserId();
-      if (userId == null) {
-        throw Exception('User ID not found');
-      }
-
-      print('Fetching restaurant for user ID: $userId');
+      print('Fetching restaurant data for owner');
+      final userId = await UserPreferences.getString('userId');
+      
       final response = await http.get(
-        getUri('/restaurants/owner/$userId'),
+        getUri('/restaurants/byOwner/$userId'),
         headers: await getHeaders(),
-      ).timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          throw TimeoutException('Request timed out');
-        },
       );
 
-      print('Restaurant response status: ${response.statusCode}');
-      print('Restaurant response body: ${response.body}');
-
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data == null) {
-          throw Exception('No restaurant data received');
-        }
-        return data;
+        return jsonDecode(response.body);
       } else {
-        final errorData = jsonDecode(response.body);
-        throw Exception(errorData['message'] ?? 'Failed to fetch restaurant: ${response.statusCode}');
+        throw Exception('Failed to fetch restaurant data: ${response.statusCode}');
       }
-    } on SocketException catch (e) {
-      print('Socket Exception: $e');
-      throw Exception('Network error: Please check your internet connection');
-    } on TimeoutException catch (e) {
-      print('Timeout Exception: $e');
-      throw Exception('Request timed out: Please try again');
-    } on FormatException catch (e) {
-      print('Format Exception: $e');
-      throw Exception('Invalid response format from server');
     } catch (e) {
-      print('Error fetching restaurant: $e');
+      print('Error fetching restaurant data: $e');
       rethrow;
     }
   }
@@ -506,15 +368,17 @@ class ApiService {
     }
   }
 
-  Future<void> updateOrderStatus(String orderId, String status, [String? cancellationReason]) async {
+  Future<void> updateOrderStatus(String orderId, String status, [String? reason]) async {
     try {
+      final body = {
+        'status': status,
+        if (reason != null) 'cancellationReason': reason,
+      };
+      
       final response = await http.put(
         getUri('/restaurants/orders/$orderId'),
         headers: await getHeaders(),
-        body: jsonEncode({
-          'status': status,
-          if (cancellationReason != null) 'cancellationReason': cancellationReason,
-        }),
+        body: jsonEncode(body),
       );
 
       if (response.statusCode != 200) {
@@ -534,22 +398,6 @@ class ApiService {
     } catch (e) {
       print('Error checking restaurant owner status: $e');
       return false;
-    }
-  }
-
-  Future<void> toggleRestaurantStatus(String restaurantId) async {
-    try {
-      final response = await http.put(
-        getUri('/restaurants/$restaurantId/toggle-status'),
-        headers: await getHeaders(),
-      );
-
-      if (response.statusCode != 200) {
-        throw Exception('Failed to toggle restaurant status: ${response.statusCode}');
-      }
-    } catch (e) {
-      print('Error toggling restaurant status: $e');
-      rethrow;
     }
   }
 
@@ -693,6 +541,39 @@ class ApiService {
     } catch (e) {
       print('Error checking credentials: $e');
       return false;
+    }
+  }
+
+  Future<void> toggleRestaurantStatus(String restaurantId) async {
+    try {
+      final response = await http.put(
+        getUri('/restaurants/$restaurantId/toggle-status'),
+        headers: await getHeaders(),
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Failed to toggle restaurant status');
+      }
+    } catch (e) {
+      print('Error toggling restaurant status: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> updateMenu(String restaurantId, List<Map<String, dynamic>> menu) async {
+    try {
+      final response = await http.put(
+        getUri('/restaurants/$restaurantId/menu'),
+        headers: await getHeaders(),
+        body: jsonEncode({'menu': menu}),
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Failed to update menu');
+      }
+    } catch (e) {
+      print('Error updating menu: $e');
+      rethrow;
     }
   }
 }

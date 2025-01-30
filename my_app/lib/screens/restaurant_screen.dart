@@ -25,7 +25,7 @@ class _RestaurantScreenState extends State<RestaurantScreen> {
   bool _isLoading = true;
   String _searchQuery = '';
   String _selectedCategory = 'All';
-  String _error = '';
+  String? _error;
 
   @override
   void initState() {
@@ -35,17 +35,46 @@ class _RestaurantScreenState extends State<RestaurantScreen> {
 
   Future<void> _fetchRestaurantData() async {
     try {
-      final restaurant = await _apiService.getRestaurantById(widget.restaurantId);
-      final menu = await _apiService.getRestaurantMenu(widget.restaurantId);
+      setState(() => _isLoading = true);
       
-      if (mounted) {
+      final response = await _apiService.getRestaurantById(widget.restaurantId);
+      print('Raw response: $response'); // Debug print
+      
+      if (response is Map<String, dynamic>) {
+        final menuItems = response['menu'];
+        print('Menu items type: ${menuItems.runtimeType}'); // Debug print
+        print('Menu items content: $menuItems'); // Debug print
+        
         setState(() {
-          _restaurant = restaurant;
-          _menu = List<Map<String, dynamic>>.from(menu['items'] ?? []);
+          _restaurant = response;
+          if (menuItems is List) {
+            _menu = menuItems.map((item) {
+              // Convert sizes object to list of maps
+              final sizesMap = item['sizes'] as Map<String, dynamic>;
+              final sizesList = sizesMap.entries.map((entry) => {
+                'name': entry.key,
+                'price': entry.value,
+              }).toList();
+              
+              return {
+                'id': item['_id'],
+                'name': item['itemName'],
+                'price': sizesMap.values.first, // Use smallest size price as default
+                'sizes': sizesList,
+                'category': item['category'] ?? 'Other',
+                'imageUrl': item['imageUrl'],
+                'isAvailable': item['isAvailable'] ?? true,
+              };
+            }).toList();
+          } else {
+            _menu = [];
+          }
           _isLoading = false;
+          _error = null;
         });
       }
     } catch (e) {
+      print('Error fetching restaurant data: $e');
       setState(() {
         _error = 'Failed to load restaurant data';
         _isLoading = false;
@@ -78,11 +107,11 @@ class _RestaurantScreenState extends State<RestaurantScreen> {
       );
     }
 
-    if (_error.isNotEmpty) {
+    if (_error != null) {
       return Scaffold(
         body: Center(
           child: Text(
-            _error,
+            _error!,
             style: GoogleFonts.montserrat(
               color: AppTheme.error,
               fontSize: 16,

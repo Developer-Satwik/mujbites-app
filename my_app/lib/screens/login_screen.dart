@@ -3,6 +3,7 @@ import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../services/user_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -42,11 +43,13 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (response != null && response['token'] != null) {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('token', response['token']);
-        await prefs.setString('role', response['role'] ?? 'user');
-        await prefs.setString('userId', response['userId'] ?? '');
-        await prefs.setBool('isLoggedIn', true);
+        final user = response['user'] as Map<String, dynamic>;
+        await UserPreferences.saveUserData(
+          userId: user['_id'].toString(),
+          token: response['token'],
+          role: user['role'],
+          restaurantData: user['restaurant'],
+        );
 
         if (mounted) {
           Navigator.pushReplacementNamed(context, '/home');

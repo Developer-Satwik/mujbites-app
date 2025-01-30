@@ -12,113 +12,113 @@ class NotificationService {
   NotificationService._internal();
 
   WebSocketChannel? _channel;
-  final _flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+  final FlutterLocalNotificationsPlugin _notifications = FlutterLocalNotificationsPlugin();
   Function(Map<String, dynamic>)? onNewOrder;
-  bool _isConnecting = false;
-  int _reconnectAttempts = 0;
-  static const int _maxReconnectAttempts = 3;
-  bool _disposed = false;
-  Timer? _reconnectTimer;
+  bool _isInitialized = false;
 
   Future<void> initialize() async {
-    await connectToWebSocket();
+    if (_isInitialized) return;
+
+    // Initialize local notifications
+    const initializationSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const initializationSettingsIOS = DarwinInitializationSettings();
+    const initializationSettings = InitializationSettings(
+      android: initializationSettingsAndroid,
+      iOS: initializationSettingsIOS,
+    );
+
+    await _notifications.initialize(
+      initializationSettings,
+      onDidReceiveNotificationResponse: (details) async {
+        // Handle notification tap
+        print('Notification tapped: ${details.payload}');
+      },
+    );
+
+    _isInitialized = true;
+  }
+
+  String get _wsUrl {
+    if (kIsWeb) {
+      return 'ws://localhost:5000/ws';
+    }
+    return Platform.isAndroid 
+        ? 'ws://10.0.2.2:5000/ws'  // Android emulator
+        : 'ws://localhost:5000/ws'; // iOS simulator or web
   }
 
   Future<void> connectToWebSocket() async {
-    if (_isConnecting) return;
-    _isConnecting = true;
-
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('token');
+      _channel = WebSocketChannel.connect(Uri.parse(_wsUrl));
       
-      if (token == null) {
-        print('No token found for WebSocket connection');
-        _isConnecting = false;
-        return;
-      }
-
-      final wsUrl = Uri.parse('ws://10.0.2.2:5000/ws')
-          .replace(queryParameters: {'token': token});
-
-      print('Connecting to WebSocket: $wsUrl');
-
-      _channel = WebSocketChannel.connect(wsUrl);
-      
-      _channel?.stream.listen(
+      _channel!.stream.listen(
         (message) {
-          try {
-            final data = jsonDecode(message);
-            if (data['type'] == 'new_order' && onNewOrder != null) {
-              onNewOrder!(data);
-            }
-          } catch (e) {
-            print('Error processing WebSocket message: $e');
+          final data = jsonDecode(message);
+          if (data['type'] == 'newOrder') {
+            _handleNewOrder(data['order']);
           }
         },
         onError: (error) {
           print('WebSocket error: $error');
-          _scheduleReconnect();
+          _reconnect();
         },
         onDone: () {
           print('WebSocket connection closed');
-          _scheduleReconnect();
+          _reconnect();
         },
-        cancelOnError: true,
       );
-
-      print('WebSocket connected successfully');
     } catch (e) {
-      print('Error connecting to WebSocket: $e');
-      _scheduleReconnect();
-    } finally {
-      _isConnecting = false;
+      print('WebSocket connection error: $e');
+      _reconnect();
     }
   }
 
-  void _scheduleReconnect() {
-    _reconnectTimer?.cancel();
-    _reconnectTimer = Timer(const Duration(seconds: 5), () {
-      print('Attempting to reconnect WebSocket...');
-      connectToWebSocket();
-    });
+  void _handleNewOrder(Map<String, dynamic> orderData) async {
+    // Show local notification
+    await _showNotification(
+      'New Order Received!',
+      'Order #${orderData['_id'].toString().substring(orderData['_id'].toString().length - 6)}',
+    );
+
+    // Call the callback if set
+    onNewOrder?.call(orderData);
   }
 
-  Future<void> _showNotification(
-    String title,
-    String body,
-    Map<String, dynamic> payload,
-  ) async {
+  Future<void> _showNotification(String title, String body) async {
     const androidDetails = AndroidNotificationDetails(
       'restaurant_orders',
       'Restaurant Orders',
       channelDescription: 'Notifications for new restaurant orders',
-      importance: Importance.max,
+      importance: Importance.high,
       priority: Priority.high,
+      enableVibration: true,
     );
 
-    const iosDetails = DarwinNotificationDetails();
+    const iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
 
-    const notificationDetails = NotificationDetails(
+    const details = NotificationDetails(
       android: androidDetails,
       iOS: iosDetails,
     );
 
-    await _flutterLocalNotificationsPlugin.show(
-      0,
+    await _notifications.show(
+      DateTime.now().millisecond,
       title,
       body,
-      notificationDetails,
-      payload: jsonEncode(payload),
+      details,
     );
   }
 
+  Future<void> _reconnect() async {
+    await Future.delayed(const Duration(seconds: 5));
+    connectToWebSocket();
+  }
+
   void dispose() {
-    _disposed = true;
-    _reconnectTimer?.cancel();
     _channel?.sink.close();
-    _channel = null;
-    _isConnecting = false;
-    _reconnectAttempts = 0;
   }
 } 
