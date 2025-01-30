@@ -2,33 +2,47 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 
 const userSchema = new mongoose.Schema({
-  username: { type: String, required: true },
+  username: {
+    type: String,
+    required: true,
+    trim: true
+  },
   mobileNumber: {
     type: String,
     required: true,
     unique: true,
-    index: true,
+    trim: true,
+    minlength: 10,
+    maxlength: 10
   },
-  password: { type: String, required: true },
+  password: {
+    type: String,
+    required: true,
+    select: false // Don't include password by default
+  },
   role: {
     type: String,
-    enum: ['admin', 'restaurant', 'user'],
-    default: 'user',
+    enum: ['user', 'restaurant', 'admin'],
+    default: 'user'
   },
-  restaurant: { type: mongoose.Schema.Types.ObjectId, ref: 'Restaurant' },
+  restaurant: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Restaurant'
+  },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
   isActive: { type: Boolean, default: true },
   address: { type: String, default: '' },
+}, {
+  timestamps: true
 });
 
-userSchema.pre('save', async function (next) {
+userSchema.pre('save', async function(next) {
+  if (!this.isModified('password')) return next();
+  
   try {
-    if (this.isModified('password')) {
-      const salt = await bcrypt.genSalt(10);
-      this.password = await bcrypt.hash(this.password, salt);
-    }
-    this.updatedAt = Date.now();
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
     next();
   } catch (error) {
     next(error);

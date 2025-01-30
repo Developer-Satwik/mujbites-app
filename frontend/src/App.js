@@ -18,30 +18,6 @@ import Cart from "./components/Cart/Cart";
 import YourOrders from "./components/Orders/YourOrders";
 import Profile from "./components/Profile/Profile";
 import "./App.css";
-import { getMessaging, deleteToken, onMessage } from "firebase/messaging";
-import { initializeApp } from "firebase/app";
-
-// Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyAUbykaRS-hD_Dn6cbTkJjql5iM3pJDUnU",
-  authDomain: "mujbites-aed86.firebaseapp.com",
-  projectId: "mujbites-aed86",
-  storageBucket: "mujbites-aed86.appspot.com",
-  messagingSenderId: "1015444127116",
-  appId: "1:1015444127116:web:1fdd4d78d5dea97ba2aaa9",
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const messaging = getMessaging(app);
-
-// Helper function to create a notification object
-const createNotification = (message) => ({
-  id: Date.now(),
-  message,
-  timestamp: new Date().toLocaleString(),
-  isRead: false,
-});
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -98,19 +74,16 @@ function App() {
 
   // Add a new notification
   const addNotification = useCallback((message) => {
-    setNotifications((prev) => [createNotification(message), ...prev]);
+    setNotifications((prev) => [{
+      id: Date.now(),
+      message,
+      timestamp: new Date().toLocaleString(),
+      isRead: false,
+    }, ...prev]);
 
     // Show browser notification if permission is granted
     if (Notification.permission === "granted") {
       new Notification("New Notification", { body: message });
-
-      // Play notification sound only if the user has interacted with the page
-      if (document.hasFocus()) {
-        const audio = new Audio("/notificationTone.mp3");
-        audio.play().catch((error) =>
-          console.error("Error playing notification sound:", error)
-        );
-      }
     }
   }, []);
 
@@ -162,21 +135,6 @@ function App() {
     }
   }, []);
 
-  // Handle Firebase foreground messages
-  useEffect(() => {
-    const unsubscribe = onMessage(messaging, (payload) => {
-      console.log("Foreground message received:", payload);
-
-      // Display a notification or update the UI
-      const { title, body } = payload.notification || {};
-      if (title && body) {
-        addNotification(body);
-      }
-    });
-
-    return () => unsubscribe();
-  }, [addNotification]);
-
   // Fetch notifications when the user logs in
   useEffect(() => {
     if (isLoggedIn) {
@@ -200,47 +158,12 @@ function App() {
   // Handle user login
   const handleLogin = async (user, token) => {
     try {
-      // Clear any existing tokens first
       localStorage.clear();
-
-      // Set new authentication data
       localStorage.setItem("userToken", token);
       localStorage.setItem("userId", user._id);
       localStorage.setItem("userRole", user.role);
-
-      // Update state
       setIsLoggedIn(true);
       setUserRole(user.role);
-
-      // Register FCM token if available
-      const fcmToken = localStorage.getItem("fcmToken");
-      if (fcmToken) {
-        try {
-          const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/tokens/register-token`, {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              token: fcmToken,
-              userId: user._id,
-              device: {
-                platform: navigator.platform,
-                userAgent: navigator.userAgent,
-              },
-            }),
-          });
-
-          if (!response.ok) {
-            throw new Error("Failed to register FCM token");
-          }
-
-          console.log("FCM token registered successfully");
-        } catch (fcmError) {
-          console.error("Failed to register FCM token:", fcmError);
-        }
-      }
     } catch (error) {
       console.error("Login error:", error);
       alert("Login failed. Please try again.");
@@ -250,65 +173,26 @@ function App() {
   // Handle user logout
   const handleLogout = async () => {
     try {
-      // Clear all localStorage items
       localStorage.clear();
-
-      // Clear all sessionStorage items
       sessionStorage.clear();
-
-      // Reset all state
       setIsLoggedIn(false);
       setUserRole(null);
       setCartItems([]);
       setNotifications([]);
       setIsCartOpen(false);
 
-      // Clear service worker cache if it exists
       if ("caches" in window) {
         try {
           const cacheKeys = await caches.keys();
           await Promise.all(cacheKeys.map((key) => caches.delete(key)));
-          console.log("Cache cleared successfully");
         } catch (error) {
           console.error("Error clearing cache:", error);
         }
       }
 
-      // Unregister service workers
-      if ("serviceWorker" in navigator) {
-        try {
-          const registrations = await navigator.serviceWorker.getRegistrations();
-          await Promise.all(
-            registrations.map((registration) => registration.unregister())
-          );
-          console.log("Service workers unregistered successfully");
-        } catch (error) {
-          console.error("Error unregistering service workers:", error);
-        }
-      }
-
-      // Clear Firebase messaging token
-      try {
-        const fcmToken = localStorage.getItem("fcmToken");
-        if (fcmToken) {
-          await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/tokens/deactivate-token`, {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${fcmToken}`,
-            },
-          });
-        }
-        await deleteToken(messaging);
-        console.log("Firebase token deleted successfully");
-      } catch (error) {
-        console.error("Error deleting Firebase token:", error);
-      }
-
-      // Force reload the application to ensure clean state
       window.location.href = "/login";
     } catch (error) {
       console.error("Error during logout:", error);
-      // Still redirect even if there were some errors
       window.location.href = "/login";
     }
   };

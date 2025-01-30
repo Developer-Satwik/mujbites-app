@@ -1,13 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
-const Restaurant = require('../models/restaurantModel'); // Correctly imported
+const Restaurant = require('../models/restaurantModel');
 const User = require('../models/user');
 const Order = require('../models/orders');
 const authenticateToken = require('../middleware/authMiddleware');
 const cors = require('cors');
-const { sendOrderNotification } = require('../notifications/orderNotifications');
-const { getRestaurantByOwnerId } = require('../controllers/restaurantController');
+const routeGuard = require('../middleware/routeGuard');
 
 router.use(cors({
   origin: ['http://localhost:3000', 'https://gregarious-fairy-bdccf7.netlify.app'],
@@ -45,48 +44,167 @@ const isRestaurantOwner = async (req, res, next) => {
   }
 };
 
+// Controller function to get restaurant by owner ID
+const getRestaurantByOwnerId = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    console.log('Fetching restaurant for user ID:', userId);
+
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ 
+        message: 'Invalid User ID format',
+        status: 400 
+      });
+    }
+
+    // Convert userId to ObjectId
+    const ownerId = new mongoose.Types.ObjectId(userId);
+    
+    const restaurant = await Restaurant.findOne({ owner: ownerId })
+      .populate('owner', 'username email')
+      .lean();
+    
+    console.log('Found restaurant:', restaurant); // Debug log
+
+    if (!restaurant) {
+      return res.status(404).json({ 
+        message: 'No restaurant found for this user',
+        status: 404 
+      });
+    }
+
+    res.json({
+      _id: restaurant._id.toString(),
+      name: restaurant.name,
+      isActive: restaurant.isActive,
+      menu: restaurant.menu,
+      owner: restaurant.owner
+    });
+  } catch (error) {
+    console.error('Error in getRestaurantByOwnerId:', error);
+    res.status(500).json({ 
+      message: 'Error fetching restaurant',
+      error: error.message,
+      status: 500
+    });
+  }
+};
+
 // Public Routes
 
 // Get all restaurants
 router.get('/', async (req, res) => {
   try {
-    const restaurants = await Restaurant.find({})
-      .populate('owner', 'username mobileNumber')
-      .select('-menu');
-
+    console.log('Fetching all restaurants');
+    const restaurants = await Restaurant.find();
     res.json(restaurants);
-  } catch (error) {
-    res.status(500).json({
-      message: 'Error fetching restaurants',
-      error: error.message
-    });
+  } catch (err) {
+    console.error('Error fetching restaurants:', err);
+    res.status(500).json({ message: err.message });
   }
 });
 
 // Get single restaurant by ID
 router.get('/:id', async (req, res) => {
   try {
-    const restaurant = await Restaurant.findOne({
-      _id: req.params.id
-    })
-    .populate('owner', 'username mobileNumber')
-    .select('-menu.isAvailable -menu.createdAt -menu.updatedAt');
-
+    const restaurant = await Restaurant.findById(req.params.id);
     if (!restaurant) {
       return res.status(404).json({ message: 'Restaurant not found' });
     }
-
     res.json(restaurant);
-  } catch (error) {
-    res.status(500).json({
-      message: 'Error fetching restaurant',
-      error: error.message
-    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 });
 
 // Get restaurant by owner ID
 router.get('/owner/:userId', authenticateToken, getRestaurantByOwnerId);
+
+// Get opening time
+router.get('/:restaurantId/opening-time', authenticateToken, async (req, res) => {
+  try {
+    const { restaurantId } = req.params;
+    const restaurant = await Restaurant.findById(restaurantId);
+
+    if (!restaurant) {
+      return res.status(404).json({ message: 'Restaurant not found' });
+    }
+
+    res.json({ openingTime: restaurant.openingTime });
+  } catch (error) {
+    console.error('Error fetching opening time:', error);
+    res.status(500).json({ message: 'Error fetching opening time', error: error.message });
+  }
+});
+
+// GET /api/restaurants/:id/menu
+router.get('/:id/menu', async (req, res) => {
+  try {
+    console.log('Fetching menu for restaurant:', req.params.id);
+    const restaurant = await Restaurant.findById(req.params.id);
+
+    if (!restaurant) {
+      return res.status(404).json({ message: 'Restaurant not found' });
+    }
+
+    const menuItems = restaurant.menu.map(item => {
+      const plainItem = item.toObject();
+      
+      // Get price and sizes
+      let defaultPrice = 0;
+      let sizesArray = [];
+
+      try {
+        // Convert sizes from Map to plain object if needed
+        const sizesObj = plainItem.sizes instanceof Map ? 
+          Object.fromEntries(plainItem.sizes) : plainItem.sizes;
+
+        if (sizesObj && typeof sizesObj === 'object') {
+          // Convert the sizes object to array format
+          sizesArray = Object.entries(sizesObj).map(([sizeName, price]) => ({
+            name: sizeName,
+            price: Number(price)
+          }));
+
+          // Set default price to Regular size or first available size
+          if (sizesObj.Regular) {
+            defaultPrice = Number(sizesObj.Regular);
+          } else {
+            const firstSizePrice = Object.values(sizesObj)[0];
+            defaultPrice = Number(firstSizePrice || 0);
+          }
+        }
+      } catch (error) {
+        console.error('Error processing sizes for item:', plainItem.itemName, error);
+      }
+
+      // Create the menu item object
+      const menuItem = {
+        id: plainItem._id,
+        name: plainItem.itemName || '',
+        description: plainItem.description || '',
+        price: defaultPrice,
+        imageUrl: plainItem.imageUrl || '',
+        category: plainItem.category || 'Uncategorized',
+        isAvailable: plainItem.isAvailable ?? true,
+        sizes: sizesArray
+      };
+
+      return menuItem;
+    });
+
+    // Log sample items for debugging
+    console.log('Sample menu items:', JSON.stringify(menuItems.slice(0, 2), null, 2));
+    console.log('Total menu items:', menuItems.length);
+
+    res.json({ items: menuItems });
+  } catch (err) {
+    console.error('Error fetching menu:', err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Protected Routes
 
 // Set opening time
 router.put('/:restaurantId/set-opening-time', authenticateToken, async (req, res) => {
@@ -110,23 +228,6 @@ router.put('/:restaurantId/set-opening-time', authenticateToken, async (req, res
   } catch (error) {
     console.error('Error setting opening time:', error);
     res.status(500).json({ message: 'Error setting opening time', error: error.message });
-  }
-});
-
-// Get opening time
-router.get('/:restaurantId/opening-time', authenticateToken, async (req, res) => {
-  try {
-    const { restaurantId } = req.params;
-    const restaurant = await Restaurant.findById(restaurantId);
-
-    if (!restaurant) {
-      return res.status(404).json({ message: 'Restaurant not found' });
-    }
-
-    res.json({ openingTime: restaurant.openingTime });
-  } catch (error) {
-    console.error('Error fetching opening time:', error);
-    res.status(500).json({ message: 'Error fetching opening time', error: error.message });
   }
 });
 
@@ -321,8 +422,11 @@ router.put('/orders/:orderId', authenticateToken, async (req, res) => {
   }
 });
 
-// Get menu for a specific restaurant
-router.get('/:restaurantId/menu', authenticateToken, isRestaurantOwner, async (req, res) => {
+// Protected restaurant routes
+router.use('/:restaurantId', authenticateToken, routeGuard(['restaurant', 'admin']));
+
+// Restaurant owner routes
+router.get('/:restaurantId/menu', authenticateToken, routeGuard(['restaurant']), async (req, res) => {
   try {
     const restaurant = await Restaurant.findById(req.params.restaurantId);
 
@@ -423,7 +527,8 @@ router.put('/menu/:itemId', authenticateToken, async (req, res) => {
     if (imageUrl) menuItem.imageUrl = imageUrl;
     if (category) menuItem.category = category;
 
-    await restaurant.save();res.json({ message: 'Menu item updated', menu: restaurant.menu });
+    await restaurant.save();
+    res.json({ message: 'Menu item updated', menu: restaurant.menu });
   } catch (error) {
     res.status(500).json({ message: 'Error updating menu item', error: error.message });
   }
@@ -469,20 +574,9 @@ router.post('/:restaurantId/new-order', authenticateToken, async (req, res) => {
       return res.status(404).json({ message: 'Restaurant not found' });
     }
 
-    const restaurantOwnerUserId = restaurant.owner._id;
-
-    const notificationResult = await sendOrderNotification(
-      restaurantOwnerUserId,
-      'NEW_ORDER_RECEIVED',
-      { userAddress }
-    );
-
-    console.log('Notification sent to restaurant owner:', notificationResult);
-
     res.status(200).json({
       success: true,
-      message: 'Order processed and notification sent.',
-      notificationResult,
+      message: 'Order processed successfully.',
     });
   } catch (error) {
     console.error('Error processing new order:', error);

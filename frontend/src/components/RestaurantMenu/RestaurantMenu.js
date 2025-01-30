@@ -2,8 +2,6 @@ import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import './RestaurantMenu.css';
-import { getMessagingInstance } from '../../firebase/firebaseConfig';
-import { getToken, onMessage } from 'firebase/messaging';
 import { FaFilter } from 'react-icons/fa';
 
 function RestaurantMenu({ addToCart, openCart }) {
@@ -39,8 +37,7 @@ function RestaurantMenu({ addToCart, openCart }) {
         },
       };
 
-      // Normalize the URL to avoid double slashes
-      const backendUrl = process.env.REACT_APP_BACKEND_URL.replace(/\/$/, ''); // Remove trailing slash if present
+      const backendUrl = process.env.REACT_APP_BACKEND_URL.replace(/\/$/, '');
       const url = `${backendUrl}/api/restaurants/${id}`;
 
       const response = await axios.get(url, config);
@@ -61,11 +58,9 @@ function RestaurantMenu({ addToCart, openCart }) {
   // Process menu data after restaurant data is fetched
   useEffect(() => {
     if (restaurantData) {
-      // Extract categories
       const categories = [...new Set(restaurantData.menu.map(item => item.category))];
       setAvailableCategories(['All', ...categories]);
 
-      // Process menu items
       const updatedMenu = restaurantData.menu.map(item => {
         const sizes = Object.keys(item.sizes);
         return {
@@ -78,73 +73,6 @@ function RestaurantMenu({ addToCart, openCart }) {
       setProcessedMenu(updatedMenu);
     }
   }, [restaurantData]);
-
-  // Setup Firebase notifications
-  useEffect(() => {
-    const setupNotifications = async () => {
-      try {
-        const messaging = getMessagingInstance();
-        if (!messaging) {
-          console.error('Firebase messaging is not initialized.');
-          return;
-        }
-
-        const permission = await Notification.requestPermission();
-        if (permission === 'granted') {
-          const token = await getToken(messaging, {
-            vapidKey: 'BDNGnSL8gU25V0g4uA8GDi88TFDhewVylFRz02cNSJV6ftgr-OkHI3ne7AEN-5iLhjpRflRhVNyy3cdfX94XWa4',
-          });
-          console.log('FCM Token:', token);
-
-          const userId = localStorage.getItem('userId');
-          if (!userId) {
-            console.error('userId not found in localStorage');
-            return;
-          }
-
-          // Send the token to the backend
-          const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/tokens`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${localStorage.getItem('token')}`, // Include the auth token
-            },
-            body: JSON.stringify({ token, userId }),
-          });
-
-          if (!response.ok) {
-            if (response.status === 409) {
-              const data = await response.json();
-              console.log(data.message); // Log the conflict message
-            } else {
-              throw new Error(`HTTP error! status: ${response.status}`);
-            }
-          } else {
-            console.log('Token saved to server.');
-          }
-
-          // Listen for incoming messages (foreground notifications)
-          onMessage(messaging, (payload) => {
-            console.log('Foreground message received:', payload);
-
-            // Display a notification or update the UI
-            const { title, body } = payload.notification;
-            new Notification(title, { body });
-
-            // Optionally, you can update the UI or state in your app
-            // For example, you can use a global state management library like Redux or Context API
-            // to trigger a re-render when a new notification is received.
-          });
-        } else {
-          console.log('Notification permission denied.');
-        }
-      } catch (error) {
-        console.error('Notification setup failed:', error);
-      }
-    };
-
-    setupNotifications();
-  }, []);
 
   const handleSizeChange = (itemId, size) => {
     setProcessedMenu(prevMenu => 

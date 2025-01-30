@@ -8,81 +8,57 @@ const User = require('../models/user');
  * @param {Function} next - The next middleware function.
  * @returns {void}
  */
-const authenticateToken = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  console.log("Auth Header:", authHeader);
+const authenticateToken = async (req, res, next) => {
+  try {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
 
-  if (!authHeader) {
-    return res.status(401).json({ 
-      success: false,
-      error: 'No authorization token provided',
-    });
-  }
-
-  const token = authHeader.split(' ')[1];
-
-  if (!token) {
-    return res.status(401).json({ 
-      success: false,
-      error: 'Access denied. No token provided.',
-    });
-  }
-
-  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-    if (err) {
-      if (err.name === 'TokenExpiredError') {
-        return res.status(401).json({ 
-          success: false,
-          error: 'Token expired. Please log in again.',
-          clearCache: true, // Signal the frontend to clear cache
-        });
-      }
-      if (err.name === 'JsonWebTokenError') {
-        return res.status(401).json({ 
-          success: false,
-          error: 'Invalid token',
-        });
-      }
+    if (!token) {
       return res.status(401).json({ 
         success: false,
-        error: 'Authentication failed',
-        message: err.message,
+        message: 'No token provided' 
       });
     }
 
-    console.log("Decoded Token:", decoded);
+    jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {
+      if (err) {
+        console.error('Token verification error:', err);
+        return res.status(403).json({ 
+          success: false,
+          message: 'Invalid or expired token' 
+        });
+      }
 
-    User.findById(decoded.userId)
-      .then(user => {
+      try {
+        // Verify user exists and is active
+        const user = await User.findById(decoded.userId);
         if (!user) {
-          return res.status(401).json({ 
+          return res.status(404).json({ 
             success: false,
-            error: 'User not found',
+            message: 'User not found' 
           });
         }
 
         req.user = {
-          userId: user._id,
-          role: user.role,
-          username: user.username,
-          restaurant: user.restaurant, // Include restaurant ID if applicable
+          userId: decoded.userId,
+          role: decoded.role
         };
-
-        console.log("req.user set:", req.user);
         next();
-      })
-      .catch(error => {
-        console.error("Database error:", {
-          error: error.message,
-          stack: error.stack,
-        });
+      } catch (error) {
+        console.error('User verification error:', error);
         res.status(500).json({ 
           success: false,
-          error: 'Database error',
-          message: error.message,
+          message: 'Error verifying user' 
         });
-      });
-  });
+      }
+    });
+  } catch (error) {
+    console.error('Authentication error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Authentication error' 
+    });
+  }
 };
 
 module.exports = authenticateToken;

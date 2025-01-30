@@ -10,39 +10,29 @@ const { sendOrderNotification } = require('../notifications/orderNotifications')
 const createOrder = async (req, res) => {
   try {
     const { restaurant, restaurantName, items, totalAmount, address } = req.body;
-    const customer = req.user.userId; // Get the user ID from the token
+    const customer = req.user.userId;
 
     // Input validation
-    if (!restaurant) {
-      return res.status(400).json({ message: "Restaurant ID is required." });
-    }
-    if (!restaurantName) {
-      return res.status(400).json({ message: "Restaurant name is required." });
-    }
-    if (!Array.isArray(items) || items.length === 0) {
-      return res.status(400).json({ message: "Order items are required." });
-    }
-    if (!totalAmount || totalAmount <= 0) {
-      return res.status(400).json({ message: "Valid total amount is required." });
-    }
-    if (!address) {
-      return res.status(400).json({ message: "Delivery address is required." });
+    if (!restaurant || !restaurantName || !Array.isArray(items) || items.length === 0 || !totalAmount || !address) {
+      return res.status(400).json({ 
+        message: "Missing required fields" 
+      });
     }
 
-    // Validate each item in the order
-    const validatedItems = items.map((item) => {
-      if (!item.menuItem || !item.itemName || !item.quantity) {
-        throw new Error("Each item must include menuItem, itemName, and quantity.");
+    // Validate each item
+    const validatedItems = items.map(item => {
+      if (!item.menuItem || !item.itemName || !item.quantity || !item.size) {
+        throw new Error("Invalid item data");
       }
       return {
         menuItem: item.menuItem,
         itemName: item.itemName,
         quantity: item.quantity,
-        size: item.size || "Regular", // Default size if not provided
+        size: item.size,
       };
     });
 
-    // Create a new order
+    // Create order
     const order = new Order({
       restaurant,
       restaurantName,
@@ -50,59 +40,47 @@ const createOrder = async (req, res) => {
       items: validatedItems,
       totalAmount,
       address,
-      orderStatus: "Placed", // Initial status
+      orderStatus: "Placed",
     });
 
     await order.save();
 
-    // Send notification to the customer
+    // Send notifications
     try {
-      const customerNotificationResult = await sendOrderNotification(
+      // Notify customer
+      await sendOrderNotification(
         customer,
         'ORDER_PLACED',
-        { restaurantName: order.restaurantName }
+        { restaurantName }
       );
 
-      if (customerNotificationResult.success) {
-        console.log("Customer notification sent successfully:", customerNotificationResult);
-      } else {
-        console.error("Failed to send customer notification:", customerNotificationResult.error);
-      }
-    } catch (error) {
-      console.error("Error sending customer notification:", error);
-    }
-
-    // Send notification to the restaurant owner
-    try {
+      // Notify restaurant owner
       const restaurantData = await Restaurant.findById(restaurant).populate("owner");
-      if (!restaurantData || !restaurantData.owner) {
-        console.error("Restaurant owner not found.");
-      } else {
-        const restaurantOwnerId = restaurantData.owner._id;
-
-        const restaurantNotificationResult = await sendOrderNotification(
-          restaurantOwnerId,
+      if (restaurantData?.owner) {
+        await sendOrderNotification(
+          restaurantData.owner._id,
           'NEW_ORDER',
-          { restaurantName: order.restaurantName }
+          { restaurantName }
         );
-
-        if (restaurantNotificationResult.success) {
-          console.log("Restaurant owner notification sent successfully:", restaurantNotificationResult);
-        } else {
-          console.error("Failed to send restaurant owner notification:", restaurantNotificationResult.error);
-        }
       }
-    } catch (error) {
-      console.error("Error sending restaurant owner notification:", error);
+    } catch (notificationError) {
+      console.error('Notification error:', notificationError);
+      // Don't fail the order if notifications fail
     }
 
-    res.status(201).json({ message: "Order placed successfully.", order });
+    res.status(201).json({
+      message: "Order placed successfully",
+      order
+    });
   } catch (error) {
     console.error("Error creating order:", {
       error: error.message,
       stack: error.stack,
     });
-    res.status(500).json({ message: "Server error.", error: error.message });
+    res.status(500).json({ 
+      message: "Failed to create order",
+      error: error.message 
+    });
   }
 };
 

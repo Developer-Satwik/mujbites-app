@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import ReCAPTCHA from "react-google-recaptcha";
 import "./Signup.css";
 import Loader from "../../Loader/Loader";
+import WhatsappAuth from "../../Whatsapp/WhatsappAuth";
 
 function Signup({ onSignup }) {
   const [name, setName] = useState("");
@@ -15,8 +16,13 @@ function Signup({ onSignup }) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [agreeToTerms, setAgreeToTerms] = useState(false);
+  const [isOTPSent, setIsOTPSent] = useState(false);
+  const [isOTPVerified, setIsOTPVerified] = useState(false);
   const recaptchaRef = useRef(null);
   const navigate = useNavigate();
+
+  // Get the backend URL from environment variables
+  const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
   const showPopup = (message, type) => {
     setPopup({ message, type, show: true });
@@ -69,9 +75,7 @@ function Signup({ onSignup }) {
     return true;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
+  const handleSendOTP = async () => {
     if (!validateForm()) {
       return;
     }
@@ -79,170 +83,209 @@ function Signup({ onSignup }) {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/users/register', {
-        method: 'POST',
+      // Send OTP to the user's WhatsApp
+      const response = await fetch(`${backendUrl}/api/users/send-otp`, {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ mobileNumber }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to send OTP. Please try again.");
+      }
+
+      setIsOTPSent(true); // Set OTP sent state to true
+      showPopup("OTP sent to your WhatsApp. Please verify.", "success");
+    } catch (error) {
+      console.error("Failed to send OTP:", error);
+      showPopup(error.message, "error");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleOTPVerification = async (otp) => {
+    setIsLoading(true);
+
+    try {
+      // Verify the OTP
+      const response = await fetch(`${backendUrl}/api/users/verify-otp`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ mobileNumber, otp }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Invalid OTP. Please try again.");
+      }
+
+      setIsOTPVerified(true); // Set OTP verified state to true
+      showPopup("OTP verified successfully!", "success");
+
+      // Proceed with signup
+      const signupResponse = await fetch(`${backendUrl}/api/users/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           username: name,
           mobileNumber,
           password,
-          recaptchaToken, // Include the reCAPTCHA token in the request
+          recaptchaToken,
         }),
       });
 
-      if (!response.ok) {
-        let errorMessage = "Signup failed! Please try again.";
-        if (response.status === 400) {
-          errorMessage = "Invalid input data.";
-        } else if (response.status === 409) {
-          errorMessage = "User already exists with this mobile number.";
-        } else if (response.status === 500) {
-          errorMessage = "Server error. Please try again later.";
-        }
-        throw new Error(errorMessage);
+      if (!signupResponse.ok) {
+        throw new Error("Signup failed. Please try again.");
       }
 
-      const data = await response.json();
+      const data = await signupResponse.json();
       if (data.token && data.user) {
         // Store user data in localStorage
-        localStorage.setItem('userToken', data.token);
-        localStorage.setItem('userRole', data.user.role);
-        localStorage.setItem('userId', data.user._id);
+        localStorage.setItem("userToken", data.token);
+        localStorage.setItem("userRole", data.user.role);
+        localStorage.setItem("userId", data.user._id);
 
         // Trigger onSignup callback with user data and token
         onSignup(data.user, data.token);
 
         // Redirect to home page
-        navigate('/');
-      } else {
-        showPopup("Invalid response from server", "error");
+        navigate("/");
       }
     } catch (error) {
-      console.error("Signup error:", error);
+      console.error("Failed to verify OTP:", error);
       showPopup(error.message, "error");
     } finally {
       setIsLoading(false);
-      if (recaptchaRef.current) {
-        recaptchaRef.current.reset();
-      }
-      setRecaptchaToken(null);
     }
   };
 
   return (
     <div className="signup-container">
-      <form className="signup-form" onSubmit={handleSubmit}>
-        <div className="signup-header">
-          Sign up
-          <span>Create your account</span>
-        </div>
-
-        <div className="input__container input__container--name">
-          <input
-            type="text"
-            className="input__search"
-            placeholder="Enter your name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-            disabled={isLoading}
-          />
-          <div className="shadow__input"></div>
-        </div>
-
-        <div className="input__container input__container--phone">
-          <input
-            type="tel"
-            className="input__search"
-            placeholder="Enter your phone number"
-            value={mobileNumber}
-            onChange={(e) => setMobileNumber(e.target.value)}
-            required
-            disabled={isLoading}
-            pattern="[0-9]{10}"
-            maxLength="10"
-          />
-          <div className="shadow__input"></div>
-        </div>
-
-        <div className="input__container input__container--password">
-          <input
-            type={showPassword ? "text" : "password"}
-            className="input__search"
-            placeholder="Enter your password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            disabled={isLoading}
-            minLength="6"
-          />
-          <i
-            className={`fas ${showPassword ? "fa-eye-slash" : "fa-eye"} password-toggle-icon`}
-            onClick={togglePasswordVisibility}
-          />
-          <div className="shadow__input"></div>
-        </div>
-
-        <div className="input__container input__container--confirm-password">
-          <input
-            type={showConfirmPassword ? "text" : "password"}
-            className="input__search"
-            placeholder="Confirm your password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            required
-            disabled={isLoading}
-            minLength="6"
-          />
-          <i
-            className={`fas ${showConfirmPassword ? "fa-eye-slash" : "fa-eye"} password-toggle-icon`}
-            onClick={toggleConfirmPasswordVisibility}
-          />
-          <div className="shadow__input"></div>
-        </div>
-
-        <ReCAPTCHA
-          ref={recaptchaRef}
-          sitekey={process.env.REACT_APP_RECAPTCHA_SITE_KEY}
-          onChange={handleRecaptchaChange}
-        />
-
-        <div className="terms-checkbox">
-          <input
-            type="checkbox"
-            id="agreeToTerms"
-            checked={agreeToTerms}
-            onChange={(e) => setAgreeToTerms(e.target.checked)}
-            required
-          />
-          <label htmlFor="agreeToTerms">
-            I agree to the{" "}
-            <a href="https://archive.org/details/termsandconditions_202501" target="_blank" rel="noopener noreferrer">
-              terms and conditions
-            </a>
-          </label>
-        </div>
-
-        <button
-          type="submit"
-          disabled={isLoading}
-          className={`signup-button ${isLoading ? "loading" : ""}`}
-        >
-          {isLoading ? <Loader /> : "Sign Up"}
-        </button>
-
-        <div className="signin-link">
-          Already a member? <Link to="/login">Sign in</Link>
-        </div>
-
-        {popup.show && (
-          <div className={`popup ${popup.type}`}>
-            {popup.message}
+      {!isOTPSent ? (
+        <form className="signup-form" onSubmit={(e) => e.preventDefault()}>
+          <div className="signup-header">
+            Sign up
+            <span>Create your account</span>
           </div>
-        )}
-      </form>
+
+          <div className="input__container input__container--name">
+            <input
+              type="text"
+              className="input__search"
+              placeholder="Enter your name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              disabled={isLoading}
+            />
+            <div className="shadow__input"></div>
+          </div>
+
+          <div className="input__container input__container--phone">
+            <input
+              type="tel"
+              className="input__search"
+              placeholder="Enter your phone number"
+              value={mobileNumber}
+              onChange={(e) => setMobileNumber(e.target.value)}
+              required
+              disabled={isLoading}
+              pattern="[0-9]{10}"
+              maxLength="10"
+            />
+            <div className="shadow__input"></div>
+          </div>
+
+          <div className="input__container input__container--password">
+            <input
+              type={showPassword ? "text" : "password"}
+              className="input__search"
+              placeholder="Enter your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              disabled={isLoading}
+              minLength="6"
+            />
+            <i
+              className={`fas ${showPassword ? "fa-eye-slash" : "fa-eye"} password-toggle-icon`}
+              onClick={togglePasswordVisibility}
+            />
+            <div className="shadow__input"></div>
+          </div>
+
+          <div className="input__container input__container--confirm-password">
+            <input
+              type={showConfirmPassword ? "text" : "password"}
+              className="input__search"
+              placeholder="Confirm your password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+              disabled={isLoading}
+              minLength="6"
+            />
+            <i
+              className={`fas ${showConfirmPassword ? "fa-eye-slash" : "fa-eye"} password-toggle-icon`}
+              onClick={toggleConfirmPasswordVisibility}
+            />
+            <div className="shadow__input"></div>
+          </div>
+
+          <ReCAPTCHA
+            ref={recaptchaRef}
+            sitekey={process.env.REACT_APP_RECAPTCHA_SITE_KEY}
+            onChange={handleRecaptchaChange}
+          />
+
+          <div className="terms-checkbox">
+            <input
+              type="checkbox"
+              id="agreeToTerms"
+              checked={agreeToTerms}
+              onChange={(e) => setAgreeToTerms(e.target.checked)}
+              required
+            />
+            <label htmlFor="agreeToTerms">
+              I agree to the{" "}
+              <a
+                href="https://archive.org/details/termsandconditions_202501"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                terms and conditions
+              </a>
+            </label>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleSendOTP}
+            disabled={isLoading}
+            className={`signup-button ${isLoading ? "loading" : ""}`}
+          >
+            {isLoading ? <Loader /> : "Send OTP"}
+          </button>
+
+          <div className="signin-link">
+            Already a member? <Link to="/login">Sign in</Link>
+          </div>
+
+          {popup.show && <div className={`popup ${popup.type}`}>{popup.message}</div>}
+        </form>
+      ) : (
+        <WhatsappAuth
+          mobileNumber={mobileNumber}
+          onOTPVerified={handleOTPVerification}
+          isLoading={isLoading}
+        />
+      )}
     </div>
   );
 }

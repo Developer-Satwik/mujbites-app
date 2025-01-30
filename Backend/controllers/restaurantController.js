@@ -1,7 +1,4 @@
-const express = require("express");
-const router = express.Router();
 const Restaurant = require("../models/restaurantModel");
-const { sendOrderNotification } = require("../notifications/orderNotifications");
 
 /**
  * Create a new restaurant.
@@ -106,21 +103,9 @@ const handleNewOrderReceived = async (req, res) => {
       return res.status(404).json({ message: 'Restaurant not found' });
     }
 
-    const restaurantOwnerUserId = restaurant.owner._id; // Assuming the owner field contains the user ID
-
-    // Send notification to the restaurant owner
-    const notificationResult = await sendOrderNotification(
-      restaurantOwnerUserId,
-      'NEW_ORDER',
-      { restaurantName: restaurant.name, userAddress }
-    );
-
-    console.log('Notification sent to restaurant owner:', notificationResult);
-
     res.status(200).json({
       success: true,
-      message: 'Order processed and notification sent.',
-      notificationResult,
+      message: 'Order processed successfully.',
     });
   } catch (error) {
     console.error('Error processing new order:', {

@@ -16,31 +16,30 @@ const orderSchema = new mongoose.Schema({
     ref: "User", 
     required: true 
   },
-  items: [
-    {
-      menuItem: { 
-        type: mongoose.Schema.Types.ObjectId, 
-        ref: "MenuItem", 
-        required: true 
-      },
-      itemName: { 
-        type: String, 
-        required: true, 
-        default: 'Default Name' 
-      },
-      quantity: { 
-        type: Number, 
-        required: true 
-      },
-      size: { 
-        type: String, 
-        required: true 
-      },
+  items: [{
+    menuItem: { 
+      type: mongoose.Schema.Types.ObjectId, 
+      ref: "MenuItem", 
+      required: true 
     },
-  ],
+    itemName: { 
+      type: String, 
+      required: true 
+    },
+    quantity: { 
+      type: Number, 
+      required: true,
+      min: 1 
+    },
+    size: { 
+      type: String, 
+      required: true 
+    }
+  }],
   totalAmount: { 
     type: Number, 
-    required: true 
+    required: true,
+    min: 0 
   },
   address: { 
     type: String, 
@@ -49,7 +48,7 @@ const orderSchema = new mongoose.Schema({
   orderStatus: {
     type: String,
     enum: ["Placed", "Accepted", "Preparing", "Ready", "Delivered", "Cancelled"],
-    default: "Placed",
+    default: "Placed"
   },
   cancellationReason: { 
     type: String,

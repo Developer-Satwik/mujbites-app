@@ -3,11 +3,7 @@ import axios from 'axios';
 import './RestaurantPanel.css';
 import { FaCog, FaCheckCircle, FaTimesCircle, FaTruck } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
-import { onMessage } from 'firebase/messaging';
-import { getMessagingInstance } from '../../firebase/firebaseConfig'; // Use getMessagingInstance
-import notificationTone from './notificationTone.mp3'; // Import the audio file
 
-// Create axios instance with default config
 const api = axios.create({
   baseURL: process.env.REACT_APP_BACKEND_URL,
   timeout: 10000,
@@ -28,13 +24,8 @@ const RestaurantPanel = () => {
   const userId = localStorage.getItem('userId');
   const navigate = useNavigate();
 
-  // Create a ref to store the previous orders
   const prevOrdersRef = useRef();
 
-  // Create an audio object for notification sound
-  const audio = new Audio(notificationTone);
-
-  // Set up request interceptor for authentication
   api.interceptors.request.use(
     (config) => {
       const token = localStorage.getItem('userToken');
@@ -48,7 +39,6 @@ const RestaurantPanel = () => {
     }
   );
 
-  // Fetch restaurant data
   const fetchRestaurantData = useCallback(async () => {
     if (!userId) {
       setError('User ID not found. Please log in again.');
@@ -58,8 +48,6 @@ const RestaurantPanel = () => {
 
     try {
       const response = await api.get(`/api/restaurants/owner/${userId}`);
-      console.log('Restaurant data response:', response.data);
-
       if (response.data && response.data._id) {
         setRestaurantId(response.data._id);
         setIsOpen(response.data.isActive || false);
@@ -73,7 +61,6 @@ const RestaurantPanel = () => {
     }
   }, [userId]);
 
-  // Fetch orders for the restaurant
   const fetchOrders = useCallback(async () => {
     if (!restaurantId) {
       console.log('No restaurant ID available');
@@ -82,8 +69,6 @@ const RestaurantPanel = () => {
 
     try {
       const response = await api.get(`/api/restaurants/${restaurantId}/orders`);
-      console.log('Orders response:', response.data);
-
       if (response.data && Array.isArray(response.data)) {
         const sortedOrders = response.data.sort(
           (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
@@ -101,7 +86,6 @@ const RestaurantPanel = () => {
     }
   }, [restaurantId]);
 
-  // Initialize data
   useEffect(() => {
     const initializeData = async () => {
       await fetchRestaurantData();
@@ -109,47 +93,14 @@ const RestaurantPanel = () => {
     initializeData();
   }, [fetchRestaurantData]);
 
-  // Set up orders polling
   useEffect(() => {
     if (restaurantId) {
       fetchOrders();
-      const intervalId = setInterval(fetchOrders, 30000); // Refresh every 30 seconds
+      const intervalId = setInterval(fetchOrders, 30000);
       return () => clearInterval(intervalId);
     }
   }, [restaurantId, fetchOrders]);
 
-  // Play sound when a new order is received
-  useEffect(() => {
-    if (prevOrdersRef.current && orders.length > prevOrdersRef.current.length) {
-      // Play the notification sound
-      audio.play();
-    }
-    // Update the previous orders ref
-    prevOrdersRef.current = orders;
-  }, [orders, audio]);
-
-  // Auto-cancel orders after 8 minutes
-  useEffect(() => {
-    const autoCancelOrders = () => {
-      const now = new Date();
-      const updatedOrders = orders.map((order) => {
-        if (order.orderStatus === 'Placed') {
-          const orderTime = new Date(order.createdAt);
-          const timeDiff = (now - orderTime) / (1000 * 60); // Difference in minutes
-          if (timeDiff >= 8) {
-            return { ...order, orderStatus: 'Cancelled', cancellationReason: 'Auto-cancelled due to timeout' };
-          }
-        }
-        return order;
-      });
-      setOrders(updatedOrders);
-    };
-
-    const intervalId = setInterval(autoCancelOrders, 60000); // Check every minute
-    return () => clearInterval(intervalId);
-  }, [orders]);
-
-  // Update order status with improved error handling
   const handleOrderStatusUpdate = async (orderId, newStatus, reason = '') => {
     try {
       const response = await api.put(`/api/restaurants/orders/${orderId}`, {
@@ -174,12 +125,10 @@ const RestaurantPanel = () => {
     }
   };
 
-  // Handle decline order
   const handleDeclineOrder = (orderId) => {
     setShowDeclineDropdown(orderId);
   };
 
-  // Confirm decline with reason
   const handleConfirmDecline = (orderId) => {
     if (!cancellationReason) {
       alert('Please select a reason for cancellation.');
@@ -188,7 +137,6 @@ const RestaurantPanel = () => {
     handleOrderStatusUpdate(orderId, 'Cancelled', cancellationReason);
   };
 
-  // Filter orders based on active tab
   const filteredOrders = orders.filter((order) => {
     switch (activeTab) {
       case 'pending':
@@ -202,7 +150,6 @@ const RestaurantPanel = () => {
     }
   });
 
-  // Toggle restaurant status
   const handleToggleStatus = async () => {
     if (!restaurantId) return;
 
@@ -215,7 +162,6 @@ const RestaurantPanel = () => {
     }
   };
 
-  // Set opening time
   const handleSetOpeningTime = async () => {
     if (!restaurantId || !openingTime) {
       alert('Please select a valid opening time.');
@@ -232,27 +178,6 @@ const RestaurantPanel = () => {
     }
   };
 
-  // Firebase Messaging: Listen for new order notifications
-  useEffect(() => {
-    const messaging = getMessagingInstance(); // Use getMessagingInstance to get the messaging instance
-    if (!messaging) {
-      console.error('Firebase messaging is not initialized.');
-      return;
-    }
-
-    const unsubscribe = onMessage(messaging, (payload) => {
-      console.log('New message received:', payload);
-      if (payload.notification) {
-        const { title, body } = payload.notification;
-        alert(`${title}: ${body}`); // Show a browser alert for new notifications
-        fetchOrders(); // Refresh orders when a new notification is received
-      }
-    });
-
-    return () => unsubscribe(); // Cleanup listener on unmount
-  }, [fetchOrders]);
-
-  // Helper functions
   const formatDate = (dateString) => new Date(dateString).toLocaleString();
   const formatPrice = (price) => `₹${Number(price).toFixed(2)}`;
   const calculateTotalItems = (orderItems) => orderItems.reduce((total, item) => total + item.quantity, 0);

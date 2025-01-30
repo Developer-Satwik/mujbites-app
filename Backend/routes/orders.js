@@ -3,7 +3,6 @@ const router = express.Router();
 const Order = require("../models/orders");
 const Restaurant = require("../models/restaurantModel");
 const authenticateToken = require("../middleware/authMiddleware");
-const { sendOrderNotification } = require('../notifications/orderNotifications');
 
 // POST /api/orders - Place a new order
 router.post("/", authenticateToken, async (req, res) => {
@@ -53,48 +52,6 @@ router.post("/", authenticateToken, async (req, res) => {
     });
 
     await order.save();
-
-    // Send notification to the customer
-    try {
-      const customerNotificationResult = await sendOrderNotification(
-        customer,
-        'ORDER_PLACED',
-        { restaurantName: order.restaurantName }
-      );
-
-      if (customerNotificationResult.success) {
-        console.log("Customer notification sent successfully:", customerNotificationResult);
-      } else {
-        console.error("Failed to send customer notification:", customerNotificationResult.error);
-      }
-    } catch (error) {
-      console.error("Error sending customer notification:", error);
-    }
-
-    // Send notification to the restaurant owner
-    try {
-      // Fetch the restaurant owner's ID
-      const restaurantData = await Restaurant.findById(restaurant).populate("owner");
-      if (!restaurantData || !restaurantData.owner) {
-        console.error("Restaurant owner not found.");
-      } else {
-        const restaurantOwnerId = restaurantData.owner._id;
-
-        const restaurantNotificationResult = await sendOrderNotification(
-          restaurantOwnerId,
-          'NEW_ORDER',
-          { restaurantName: order.restaurantName }
-        );
-
-        if (restaurantNotificationResult.success) {
-          console.log("Restaurant owner notification sent successfully:", restaurantNotificationResult);
-        } else {
-          console.error("Failed to send restaurant owner notification:", restaurantNotificationResult.error);
-        }
-      }
-    } catch (error) {
-      console.error("Error sending restaurant owner notification:", error);
-    }
 
     res.status(201).json({ message: "Order placed successfully.", order });
   } catch (error) {
@@ -178,12 +135,12 @@ router.get("/all", authenticateToken, async (req, res) => {
   }
 });
 
-// PATCH /api/orders/:orderId/confirm - Confirm an order
+// PATCH /api/orders/:orderId/confirm - Accept an order
 router.patch('/:orderId/confirm', authenticateToken, async (req, res) => {
   try {
     const order = await Order.findByIdAndUpdate(
       req.params.orderId,
-      { orderStatus: 'Accepted' }, // Updated to match schema
+      { orderStatus: 'Accepted' },
       { new: true }
     );
 
@@ -191,38 +148,19 @@ router.patch('/:orderId/confirm', authenticateToken, async (req, res) => {
       return res.status(404).json({ message: "Order not found." });
     }
 
-    // Send notification for order confirmed
-    try {
-      const result = await sendOrderNotification(
-        order.customer,
-        'ORDER_CONFIRMED'
-      );
-
-      if (result.success) {
-        console.log("Notification sent successfully:", result);
-      } else {
-        console.error("Failed to send notification:", result.error);
-      }
-    } catch (error) {
-      console.error("Error sending notification:", error);
-    }
-
     res.json(order);
   } catch (error) {
-    console.error("Error confirming order:", {
-      error: error.message,
-      stack: error.stack,
-    });
+    console.error("Error confirming order:", error);
     res.status(500).json({ message: "Server error.", error: error.message });
   }
 });
 
-// PATCH /api/orders/:orderId/deliver - Mark an order as delivered
+// PATCH /api/orders/:orderId/deliver - Mark order as delivered
 router.patch('/:orderId/deliver', authenticateToken, async (req, res) => {
   try {
     const order = await Order.findByIdAndUpdate(
       req.params.orderId,
-      { orderStatus: 'Delivered' }, // Updated to match schema
+      { orderStatus: 'Delivered' },
       { new: true }
     );
 
@@ -230,28 +168,33 @@ router.patch('/:orderId/deliver', authenticateToken, async (req, res) => {
       return res.status(404).json({ message: "Order not found." });
     }
 
-    // Send notification for order delivered
-    try {
-      const result = await sendOrderNotification(
-        order.customer,
-        'ORDER_DELIVERED'
-      );
+    res.json(order);
+  } catch (error) {
+    console.error("Error delivering order:", error);
+    res.status(500).json({ message: "Server error.", error: error.message });
+  }
+});
 
-      if (result.success) {
-        console.log("Notification sent successfully:", result);
-      } else {
-        console.error("Failed to send notification:", result.error);
-      }
-    } catch (error) {
-      console.error("Error sending notification:", error);
+// PATCH /api/orders/:orderId/cancel - Cancel an order
+router.patch('/:orderId/cancel', authenticateToken, async (req, res) => {
+  try {
+    const { reason } = req.body;
+    const order = await Order.findByIdAndUpdate(
+      req.params.orderId,
+      { 
+        orderStatus: 'Cancelled',
+        cancellationReason: reason 
+      },
+      { new: true }
+    );
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found." });
     }
 
     res.json(order);
   } catch (error) {
-    console.error("Error delivering order:", {
-      error: error.message,
-      stack: error.stack,
-    });
+    console.error("Error cancelling order:", error);
     res.status(500).json({ message: "Server error.", error: error.message });
   }
 });
