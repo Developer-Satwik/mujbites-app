@@ -6,6 +6,7 @@ import '../services/api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/user_preferences.dart';
+import '../widgets/loading_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -157,7 +158,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
             Expanded(
               child: _isLoading
-                  ? _buildShimmerLoading()
+                  ? const LoadingScreen()
                   : _buildRestaurantGrid(),
             ),
           ],

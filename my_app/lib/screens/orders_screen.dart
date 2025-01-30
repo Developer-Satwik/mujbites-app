@@ -4,6 +4,7 @@ import '../widgets/custom_navbar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/scheduler.dart' show timeDilation;
 import 'dart:async';
+import '../widgets/loading_screen.dart';
 
 class OrdersScreen extends StatefulWidget {
   const OrdersScreen({super.key});
@@ -124,7 +125,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
               child: RefreshIndicator(
                 onRefresh: _loadOrders,
                 child: _isLoading
-                    ? const Center(child: CircularProgressIndicator())
+                    ? const LoadingScreen()
                     : _error != null
                         ? Center(
                             child: Text(

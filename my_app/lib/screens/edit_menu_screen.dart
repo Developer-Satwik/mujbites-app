@@ -3,6 +3,7 @@ import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/custom_navbar.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../widgets/loading_screen.dart';
 
 class EditMenuScreen extends StatefulWidget {
   const EditMenuScreen({super.key});
@@ -160,9 +161,7 @@ class _EditMenuScreenState extends State<EditMenuScreen> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const LoadingScreen();
     }
 
     return Scaffold(

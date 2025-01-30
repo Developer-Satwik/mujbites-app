@@ -20,6 +20,7 @@ dependencies:
   glassmorphism_ui: ^0.3.0
   rive: ^0.12.4
   permission_handler: ^11.0.1
+  url_launcher: ^6.2.4
 
 dev_dependencies:
   flutter_test:

@@ -8,6 +8,7 @@ import '../models/cart.dart';
 import '../theme/app_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../widgets/cart.dart';
+import '../widgets/loading_screen.dart';
 
 class RestaurantScreen extends StatefulWidget {
   final String restaurantId;
@@ -98,13 +99,7 @@ class _RestaurantScreenState extends State<RestaurantScreen> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(
-            color: AppTheme.primary,
-          ),
-        ),
-      );
+      return const Scaffold(body: LoadingScreen());
     }
 
     if (_error != null) {

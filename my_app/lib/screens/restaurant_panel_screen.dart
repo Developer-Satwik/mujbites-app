@@ -8,6 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_theme.dart';
 import '../services/user_preferences.dart';
 import '../screens/edit_menu_screen.dart';
+import '../widgets/loading_screen.dart';
 
 class RestaurantPanelScreen extends StatefulWidget {
   const RestaurantPanelScreen({super.key});
@@ -341,9 +342,7 @@ class _RestaurantPanelScreenState extends State<RestaurantPanelScreen> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: LoadingScreen());
     }
 
     // Show orders panel if orders are being viewed

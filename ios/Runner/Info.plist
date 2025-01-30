@@ -3,4 +3,9 @@
     <string>remote-notification</string>
 </array>
 <key>CFBundleName</key>
-<string>MujBites</string> 
+<string>MujBites</string>
+<key>LSApplicationQueriesSchemes</key>
+<array>
+    <string>http</string>
+    <string>https</string>
+</array> 

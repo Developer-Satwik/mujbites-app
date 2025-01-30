@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -62,6 +63,30 @@ class _SignupScreenState extends State<SignupScreen> {
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  Future<void> _launchTerms() async {
+    final Uri url = Uri.parse('https://archive.org/details/termsandconditions_202501');
+    try {
+      if (await canLaunchUrl(url)) {
+        await launchUrl(
+          url,
+          mode: LaunchMode.platformDefault,
+        );
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Could not open terms and conditions')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error opening terms and conditions')),
+        );
       }
     }
   }
@@ -204,7 +229,7 @@ class _SignupScreenState extends State<SignupScreen> {
                             const SizedBox(width: 8),
                             Expanded(
                               child: GestureDetector(
-                                onTap: () => setState(() => _agreeToTerms = !_agreeToTerms),
+                                onTap: _launchTerms,
                                 child: Text(
                                   'I agree to the terms and conditions',
                                   style: GoogleFonts.montserrat(

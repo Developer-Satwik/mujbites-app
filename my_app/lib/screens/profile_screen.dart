@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../widgets/custom_navbar.dart';
 import '../services/api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../widgets/loading_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -153,13 +154,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(
-            color: Color(0xFFFAC744),
-          ),
-        ),
-      );
+      return const LoadingScreen();
     }
 
     return Scaffold(
