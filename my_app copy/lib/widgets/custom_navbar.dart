@@ -3,92 +3,54 @@ import 'package:my_app/theme/app_theme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class CustomNavbar extends StatelessWidget {
+  final String userRole;
   final bool isLoggedIn;
-  final String? userRole;
   final VoidCallback onLogout;
 
   const CustomNavbar({
     super.key,
+    required this.userRole,
     required this.isLoggedIn,
-    this.userRole,
     required this.onLogout,
   });
 
   @override
   Widget build(BuildContext context) {
     return BottomNavigationBar(
-      currentIndex: _getCurrentIndex(ModalRoute.of(context)?.settings.name ?? '/'),
-      selectedItemColor: AppTheme.primary,
+      currentIndex: _getCurrentIndex(context),
+      onTap: (index) => _onItemTapped(index, context),
+      selectedItemColor: const Color(0xFFFAC744),
       unselectedItemColor: Colors.grey,
       type: BottomNavigationBarType.fixed,
-      items: _getNavItems(),
-      onTap: (index) => _onItemTapped(index, context),
-    );
-  }
-
-  List<BottomNavigationBarItem> _getNavItems() {
-    print('CustomNavbar userRole: $userRole'); // Debug print
-    final items = [
-      const BottomNavigationBarItem(
-        icon: Icon(Icons.home),
-        label: 'Home',
-      ),
-    ];
-
-    if (isLoggedIn) {
-      if (userRole == 'restaurant') {
-        print('Adding restaurant items to navbar'); // Debug print
-        items.addAll([
+      items: [
+        const BottomNavigationBarItem(
+          icon: Icon(Icons.home),
+          label: 'Home',
+        ),
+        if (userRole == 'restaurant')
           const BottomNavigationBarItem(
-            icon: Icon(Icons.restaurant_menu),
-            label: 'Restaurant',
+            icon: Icon(Icons.restaurant),
+            label: 'Restaurant Panel',
           ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.receipt_long),
-            label: 'Orders',
-          ),
-        ]);
-      } else {
-        print('Adding user items to navbar'); // Debug print
-        items.addAll([
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.receipt_long),
-            label: 'Orders',
-          ),
-        ]);
-      }
-      items.add(
+        const BottomNavigationBarItem(
+          icon: Icon(Icons.receipt_long),
+          label: 'Orders',
+        ),
         const BottomNavigationBarItem(
           icon: Icon(Icons.person),
           label: 'Profile',
         ),
-      );
-    }
-
-    return items;
+      ],
+    );
   }
 
-  int _getCurrentIndex(String route) {
-    switch (route) {
-      case '/':
-      case '/home':
-        return 0;
-      case '/restaurant-panel':
-        return 1;
-      case '/orders':
-        return userRole == 'restaurant' ? 2 : 1;
-      case '/profile':
-        return userRole == 'restaurant' ? 3 : 2;
-      default:
-        return 0;
-    }
-  }
+  void _onItemTapped(int index, BuildContext context) {
+    print('\n=== NavBar Item Tapped ===');
+    print('Index: $index');
+    print('Current role: $userRole');
+    print('Is logged in: $isLoggedIn');
 
-  void _onItemTapped(int index, BuildContext context) async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
-    
-    if (token == null) {
+    if (!isLoggedIn) {
       Navigator.pushReplacementNamed(context, '/login');
       return;
     }
@@ -99,23 +61,38 @@ class CustomNavbar extends StatelessWidget {
         break;
       case 1:
         if (userRole == 'restaurant') {
-          Navigator.pushNamed(context, '/restaurant-panel');
+          Navigator.pushReplacementNamed(context, '/restaurant-panel');
         } else {
-          Navigator.pushNamed(context, '/orders');
+          Navigator.pushReplacementNamed(context, '/orders');
         }
         break;
       case 2:
         if (userRole == 'restaurant') {
-          Navigator.pushNamed(context, '/orders');
+          Navigator.pushReplacementNamed(context, '/orders');
         } else {
-          Navigator.pushNamed(context, '/profile');
+          Navigator.pushReplacementNamed(context, '/profile');
         }
         break;
       case 3:
-        if (userRole == 'restaurant') {
-          Navigator.pushNamed(context, '/profile');
-        }
+        Navigator.pushReplacementNamed(context, '/profile');
         break;
+    }
+  }
+
+  int _getCurrentIndex(BuildContext context) {
+    final String currentRoute = ModalRoute.of(context)?.settings.name ?? '/';
+    
+    switch (currentRoute) {
+      case '/home':
+        return 0;
+      case '/restaurant-panel':
+        return userRole == 'restaurant' ? 1 : 0;
+      case '/orders':
+        return userRole == 'restaurant' ? 2 : 1;
+      case '/profile':
+        return userRole == 'restaurant' ? 3 : 2;
+      default:
+        return 0;
     }
   }
 } 

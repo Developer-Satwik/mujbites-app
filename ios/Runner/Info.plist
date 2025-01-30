@@ -2,6 +2,8 @@
 <array>
     <string>remote-notification</string>
 </array>
+<key>CFBundleDisplayName</key>
+<string>MujBites</string>
 <key>CFBundleName</key>
 <string>MujBites</string>
 <key>LSApplicationQueriesSchemes</key>

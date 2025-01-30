@@ -11,8 +11,11 @@ import 'package:provider/provider.dart';
 import 'providers/cart_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'widgets/custom_navbar.dart';
+import 'services/user_preferences.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await UserPreferences.init();
   runApp(
     MultiProvider(
       providers: [
@@ -29,7 +32,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'My App',
+      title: 'MujBites',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: AppTheme.primary),
         useMaterial3: true,

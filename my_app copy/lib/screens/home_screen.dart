@@ -5,6 +5,8 @@ import '../widgets/cart.dart';
 import '../services/api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../services/user_preferences.dart';
+import '../widgets/loading_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -16,7 +18,8 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final ApiService _apiService = ApiService();
   bool _isLoading = true;
-  String? _userRole = 'user';
+  String? _userRole;
+  bool _isLoggedIn = false;
   String _searchQuery = '';
   List<Map<String, dynamic>> _restaurants = [];
   String? _error;
@@ -24,41 +27,28 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _checkAuth();
-    _fetchUserRole();
+    _loadUserData();
     _fetchRestaurants();
     _setupAutoRefresh();
   }
 
-  Future<void> _checkAuth() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
-    if (token == null) {
-      if (mounted) {
-        Navigator.pushReplacementNamed(context, '/login');
-      }
-    }
-  }
-
-  Future<void> _fetchUserRole() async {
+  Future<void> _loadUserData() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final userData = await _apiService.getUserProfile();
-      final role = userData['role'];
-      final hasRestaurant = userData['restaurant'] != null;
+      final role = await UserPreferences.getRole();
+      final isLoggedIn = await UserPreferences.isLoggedIn();
       
-      print('User role from profile: $role'); // Debug print
-      print('Has restaurant: $hasRestaurant'); // Debug print
+      print('Loading user data in HomeScreen:');
+      print('Role from storage: $role');
+      print('Is logged in: $isLoggedIn');
       
       if (mounted) {
         setState(() {
           _userRole = role;
+          _isLoggedIn = isLoggedIn;
         });
-        // Update stored role
-        await prefs.setString('role', role);
       }
     } catch (e) {
-      print('Error fetching user role: $e');
+      print('Error loading user data: $e');
     }
   }
 
@@ -106,17 +96,21 @@ class _HomeScreenState extends State<HomeScreen> {
     }).toList();
   }
 
-  void _handleLogout() async {
-    await _apiService.logout();
-    if (mounted) {
-      Navigator.pushReplacementNamed(context, '/login');
+  Future<void> _handleLogout() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear();
+      if (mounted) {
+        Navigator.of(context).pushReplacementNamed('/login');
+      }
+    } catch (e) {
+      print('Logout error: $e');
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFAFAFA),
       body: SafeArea(
         child: Column(
           children: [
@@ -164,15 +158,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
             Expanded(
               child: _isLoading
-                  ? _buildShimmerLoading()
+                  ? const LoadingScreen()
                   : _buildRestaurantGrid(),
             ),
           ],
         ),
       ),
       bottomNavigationBar: CustomNavbar(
-        isLoggedIn: true,
-        userRole: _userRole,
+        isLoggedIn: _isLoggedIn,
+        userRole: _userRole ?? '',
         onLogout: _handleLogout,
       ),
     );

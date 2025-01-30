@@ -5,6 +5,10 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:async';
+import 'package:permission_handler/permission_handler.dart' as ph;
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../theme/app_theme.dart';
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
@@ -12,140 +16,218 @@ class NotificationService {
   NotificationService._internal();
 
   WebSocketChannel? _channel;
-  final _flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+  final FlutterLocalNotificationsPlugin _notifications = FlutterLocalNotificationsPlugin();
   Function(Map<String, dynamic>)? onNewOrder;
-  bool _isConnecting = false;
-  int _reconnectAttempts = 0;
-  static const int _maxReconnectAttempts = 3;
-  bool _disposed = false;
-  Timer? _reconnectTimer;
+  bool _isInitialized = false;
 
   Future<void> initialize() async {
+    if (_isInitialized) return;
+
+    // Request notification permissions
+    if (!kIsWeb) {
+      if (Platform.isAndroid) {
+        final status = await ph.Permission.notification.status;
+        if (status.isDenied) {
+          final result = await ph.Permission.notification.request();
+          if (result.isDenied) {
+            print('Notification permission denied');
+            return;
+          }
+        }
+      } else if (Platform.isIOS) {
+        // Request iOS permissions
+        final settings = await _notifications.resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin>()?.requestPermissions(
+          alert: true,
+          badge: true,
+          sound: true,
+        );
+        if (settings == false) {
+          print('iOS notification permissions denied');
+          return;
+        }
+      }
+    }
+
     // Initialize local notifications
     const initializationSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const initializationSettingsIOS = DarwinInitializationSettings();
+    const initializationSettingsIOS = DarwinInitializationSettings(
+      requestAlertPermission: true,
+      requestBadgePermission: true,
+      requestSoundPermission: true,
+    );
     const initializationSettings = InitializationSettings(
       android: initializationSettingsAndroid,
       iOS: initializationSettingsIOS,
     );
 
-    await _flutterLocalNotificationsPlugin.initialize(
+    await _notifications.initialize(
       initializationSettings,
-      onDidReceiveNotificationResponse: (details) {
+      onDidReceiveNotificationResponse: (details) async {
         // Handle notification tap
+        print('Notification tapped: ${details.payload}');
       },
     );
+
+    _isInitialized = true;
+  }
+
+  String get _wsUrl {
+    if (kIsWeb) {
+      return 'ws://localhost:5000/ws';
+    }
+    return Platform.isAndroid 
+        ? 'ws://10.0.2.2:5000/ws'  // Android emulator
+        : 'ws://localhost:5000/ws'; // iOS simulator or web
   }
 
   Future<void> connectToWebSocket() async {
-    if (_isConnecting || _disposed) return;
-    _isConnecting = true;
-
     try {
-      // Close existing connection if any
-      await _channel?.sink.close();
-      _channel = null;
-
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('token');
-      final userId = prefs.getString('userId');
-
-      if (token == null || userId == null || _disposed) {
-        _isConnecting = false;
-        return;
-      }
-
-      final wsUrl = kIsWeb 
-          ? 'wss://your-backend-url.com/ws'  // Update with your secure WebSocket URL
-          : Platform.isAndroid
-              ? 'ws://10.0.2.2:5000/ws'
-              : 'ws://localhost:5000/ws';
-
-      final uri = Uri.parse('$wsUrl?token=$token&userId=$userId');
-      print('Connecting to WebSocket: $uri');
-
-      _channel = WebSocketChannel.connect(uri);
-      _reconnectAttempts = 0;
-      print('WebSocket connected');
-
-      _channel?.stream.listen(
-        _handleWebSocketMessage,
-        onError: _handleDisconnect,
-        onDone: _handleDisconnect,
-        cancelOnError: true,
+      _channel = WebSocketChannel.connect(Uri.parse(_wsUrl));
+      
+      _channel!.stream.listen(
+        (message) {
+          final data = jsonDecode(message);
+          if (data['type'] == 'newOrder') {
+            _handleNewOrder(data['order']);
+          }
+        },
+        onError: (error) {
+          print('WebSocket error: $error');
+          _reconnect();
+        },
+        onDone: () {
+          print('WebSocket connection closed');
+          _reconnect();
+        },
       );
     } catch (e) {
-      print('Error connecting to WebSocket: $e');
-      _handleDisconnect();
-    } finally {
-      _isConnecting = false;
+      print('WebSocket connection error: $e');
+      _reconnect();
     }
   }
 
-  void _handleWebSocketMessage(dynamic message) {
-    try {
-      final data = jsonDecode(message);
-      if (data['type'] == 'NEW_ORDER') {
-        _showNotification(
-          'New Order',
-          'You have received a new order!',
-          data,
-        );
-        onNewOrder?.call(data);
-      }
-    } catch (e) {
-      print('Error handling WebSocket message: $e');
-    }
+  void _handleNewOrder(Map<String, dynamic> orderData) async {
+    // Show local notification
+    await _showNotification(
+      'New Order Received!',
+      'Order #${orderData['_id'].toString().substring(orderData['_id'].toString().length - 6)}',
+    );
+
+    // Call the callback if set
+    onNewOrder?.call(orderData);
   }
 
-  Future<void> _showNotification(
-    String title,
-    String body,
-    Map<String, dynamic> payload,
-  ) async {
+  Future<void> _showNotification(String title, String body) async {
     const androidDetails = AndroidNotificationDetails(
       'restaurant_orders',
       'Restaurant Orders',
       channelDescription: 'Notifications for new restaurant orders',
-      importance: Importance.max,
+      importance: Importance.high,
       priority: Priority.high,
+      enableVibration: true,
     );
 
-    const iosDetails = DarwinNotificationDetails();
+    const iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
 
-    const notificationDetails = NotificationDetails(
+    const details = NotificationDetails(
       android: androidDetails,
       iOS: iosDetails,
     );
 
-    await _flutterLocalNotificationsPlugin.show(
-      0,
+    await _notifications.show(
+      DateTime.now().millisecond,
       title,
       body,
-      notificationDetails,
-      payload: jsonEncode(payload),
+      details,
     );
   }
 
-  void _handleDisconnect() {
-    if (_disposed) return;
-    
-    _reconnectTimer?.cancel();
-    if (_reconnectAttempts < _maxReconnectAttempts) {
-      _reconnectAttempts++;
-      print('Reconnection attempt $_reconnectAttempts of $_maxReconnectAttempts');
-      _reconnectTimer = Timer(const Duration(seconds: 5), connectToWebSocket);
-    } else {
-      print('Max reconnection attempts reached');
-    }
+  Future<void> _reconnect() async {
+    await Future.delayed(const Duration(seconds: 5));
+    connectToWebSocket();
   }
 
   void dispose() {
-    _disposed = true;
-    _reconnectTimer?.cancel();
     _channel?.sink.close();
-    _channel = null;
-    _isConnecting = false;
-    _reconnectAttempts = 0;
+  }
+
+  // Add method to check notification permission status
+  Future<bool> checkNotificationPermissions() async {
+    if (kIsWeb) return true;
+
+    if (Platform.isAndroid) {
+      final status = await ph.Permission.notification.status;
+      return status.isGranted;
+    } else if (Platform.isIOS) {
+      final settings = await _notifications
+          .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
+          ?.requestPermissions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+      return settings ?? false;
+    }
+    return false;
+  }
+
+  // Add method to show permission dialog with custom UI
+  Future<void> showPermissionDialog(BuildContext context) async {
+    return showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          'Enable Notifications',
+          style: GoogleFonts.playfairDisplay(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        content: Text(
+          'Would you like to receive notifications for new orders and updates?',
+          style: GoogleFonts.montserrat(),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(
+              'Not Now',
+              style: GoogleFonts.montserrat(color: Colors.grey),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context, true);
+              if (Platform.isAndroid) {
+                await ph.Permission.notification.request();
+              } else if (Platform.isIOS) {
+                await _notifications
+                    .resolvePlatformSpecificImplementation<
+                        IOSFlutterLocalNotificationsPlugin>()
+                    ?.requestPermissions(
+                  alert: true,
+                  badge: true,
+                  sound: true,
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primary,
+            ),
+            child: Text(
+              'Enable',
+              style: GoogleFonts.montserrat(
+                color: Colors.black87,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 } 
