@@ -72,6 +72,17 @@ class _CartWidgetState extends State<CartWidget> {
   }
 
   Future<void> _confirmOrder(BuildContext context, CartProvider cartProvider) async {
+    // Add minimum order check
+    if (cartProvider.totalAmount < 100) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Minimum order amount is ₹100'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     if (_addressController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -322,18 +333,13 @@ class _CartWidgetState extends State<CartWidget> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Total',
+                        cart.totalAmount < 100 
+                            ? 'Add ₹${(100 - cart.totalAmount).toStringAsFixed(2)} more to place order'
+                            : 'Total: ₹${cart.totalAmount.toStringAsFixed(2)}',
                         style: GoogleFonts.montserrat(
-                          fontSize: 18,
+                          fontSize: 16,
                           fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        '₹${cart.totalAmount.toStringAsFixed(2)}',
-                        style: GoogleFonts.montserrat(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.primary,
+                          color: cart.totalAmount < 100 ? Colors.red : Colors.black87,
                         ),
                       ),
                     ],

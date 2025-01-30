@@ -20,11 +20,18 @@ class _EditMenuScreenState extends State<EditMenuScreen> {
   String _searchQuery = '';
   final List<String> _categories = ['Beverages', 'Desserts', 'Main Course', 'Appetizers', 'Snacks'];
   Map<String, dynamic>? _restaurantData;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     _fetchRestaurantData();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   Future<void> _fetchRestaurantData() async {
@@ -80,10 +87,18 @@ class _EditMenuScreenState extends State<EditMenuScreen> {
         'itemName': '',
         'description': '',
         'imageUrl': '',
-        'category': '',
+        'category': _categories[0],
         'sizes': {},
         'isAvailable': true,
       });
+    });
+
+    Future.delayed(const Duration(milliseconds: 100), () {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
     });
   }
 
@@ -191,6 +206,7 @@ class _EditMenuScreenState extends State<EditMenuScreen> {
           ),
           Expanded(
             child: ListView.builder(
+              controller: _scrollController,
               itemCount: _menu.length,
               itemBuilder: (context, index) => _buildMenuItem(index),
             ),
@@ -235,7 +251,7 @@ class _EditMenuScreenState extends State<EditMenuScreen> {
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(
-              value: item['category'],
+              value: item['category'] ?? _categories[0],
               decoration: const InputDecoration(labelText: 'Category'),
               items: _categories.map((category) {
                 return DropdownMenuItem(

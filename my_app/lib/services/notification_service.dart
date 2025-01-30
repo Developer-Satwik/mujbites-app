@@ -23,51 +23,45 @@ class NotificationService {
   Future<void> initialize() async {
     if (_isInitialized) return;
 
-    // Request notification permissions
-    if (!kIsWeb) {
-      if (Platform.isAndroid) {
-        final status = await ph.Permission.notification.status;
-        if (status.isDenied) {
-          final result = await ph.Permission.notification.request();
-          if (result.isDenied) {
-            print('Notification permission denied');
-            return;
-          }
-        }
-      } else if (Platform.isIOS) {
-        // Request iOS permissions
-        final settings = await _notifications.resolvePlatformSpecificImplementation<
-            IOSFlutterLocalNotificationsPlugin>()?.requestPermissions(
-          alert: true,
-          badge: true,
-          sound: true,
-        );
-        if (settings == false) {
-          print('iOS notification permissions denied');
-          return;
-        }
-      }
-    }
-
-    // Initialize local notifications
-    const initializationSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const initializationSettingsIOS = DarwinInitializationSettings(
-      requestAlertPermission: true,
-      requestBadgePermission: true,
-      requestSoundPermission: true,
-    );
-    const initializationSettings = InitializationSettings(
-      android: initializationSettingsAndroid,
-      iOS: initializationSettingsIOS,
-    );
-
+    // Configure background handling
     await _notifications.initialize(
-      initializationSettings,
-      onDidReceiveNotificationResponse: (details) async {
-        // Handle notification tap
-        print('Notification tapped: ${details.payload}');
-      },
+      InitializationSettings(
+        android: const AndroidInitializationSettings('@mipmap/ic_launcher'),
+        iOS: DarwinInitializationSettings(
+          requestAlertPermission: true,
+          requestBadgePermission: true,
+          requestSoundPermission: true,
+          notificationCategories: [
+            DarwinNotificationCategory(
+              'order_category',
+              actions: [
+                DarwinNotificationAction.plain('accept', 'Accept'),
+                DarwinNotificationAction.plain('reject', 'Reject'),
+              ],
+              options: <DarwinNotificationCategoryOption>{
+                DarwinNotificationCategoryOption.hiddenPreviewShowTitle,
+              },
+            ),
+          ],
+        ),
+      ),
+      onDidReceiveNotificationResponse: _handleNotificationResponse,
+      onDidReceiveBackgroundNotificationResponse: _handleBackgroundNotificationResponse,
     );
+
+    // Request permissions with provisional authorization
+    if (!kIsWeb && Platform.isIOS) {
+      await _notifications
+          .resolvePlatformSpecificImplementation<
+              IOSFlutterLocalNotificationsPlugin>()
+          ?.requestPermissions(
+            alert: true,
+            badge: true,
+            sound: true,
+            critical: true, // For high-priority notifications
+            provisional: true, // For provisional authorization
+          );
+    }
 
     _isInitialized = true;
   }
@@ -118,23 +112,48 @@ class NotificationService {
     onNewOrder?.call(orderData);
   }
 
-  Future<void> _showNotification(String title, String body) async {
-    const androidDetails = AndroidNotificationDetails(
+  static void _handleBackgroundNotificationResponse(NotificationResponse details) {
+    print('Handling background notification: ${details.payload}');
+    // Handle the background notification
+  }
+
+  void _handleNotificationResponse(NotificationResponse details) async {
+    print('Handling foreground notification: ${details.payload}');
+    if (details.payload != null) {
+      try {
+        final data = jsonDecode(details.payload!);
+        onNewOrder?.call(data);
+      } catch (e) {
+        print('Error parsing notification payload: $e');
+      }
+    }
+  }
+
+  Future<void> _showNotification(String title, String body, {Map<String, dynamic>? payload}) async {
+    final androidDetails = AndroidNotificationDetails(
       'restaurant_orders',
       'Restaurant Orders',
       channelDescription: 'Notifications for new restaurant orders',
-      importance: Importance.high,
+      importance: Importance.max,
       priority: Priority.high,
       enableVibration: true,
+      playSound: true,
+      sound: RawResourceAndroidNotificationSound('notification_sound'),
+      category: AndroidNotificationCategory.alarm,
+      fullScreenIntent: true,
+      visibility: NotificationVisibility.public,
     );
 
-    const iosDetails = DarwinNotificationDetails(
+    final iosDetails = DarwinNotificationDetails(
       presentAlert: true,
       presentBadge: true,
       presentSound: true,
+      sound: 'notification_sound.aiff',
+      categoryIdentifier: 'order_category',
+      interruptionLevel: InterruptionLevel.timeSensitive,
     );
 
-    const details = NotificationDetails(
+    final details = NotificationDetails(
       android: androidDetails,
       iOS: iosDetails,
     );
@@ -144,6 +163,7 @@ class NotificationService {
       title,
       body,
       details,
+      payload: payload != null ? jsonEncode(payload) : null,
     );
   }
 

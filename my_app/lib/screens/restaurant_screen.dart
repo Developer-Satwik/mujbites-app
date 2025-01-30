@@ -278,6 +278,22 @@ class _RestaurantScreenState extends State<RestaurantScreen> {
               ),
             ),
           ),
+
+          // Responsibility Disclaimer
+          SliverToBoxAdapter(
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                'Note: The products may not exactly match the images displayed. Actual products may vary.',
+                style: GoogleFonts.montserrat(
+                  fontSize: 12,
+                  color: AppTheme.textSecondary,
+                  fontWeight: FontWeight.w500,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -457,4 +473,4 @@ class _RestaurantScreenState extends State<RestaurantScreen> {
       );
     }
   }
-} 
+}

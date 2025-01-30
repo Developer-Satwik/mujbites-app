@@ -1,11 +1,17 @@
 <key>UIBackgroundModes</key>
 <array>
     <string>remote-notification</string>
+    <string>fetch</string>
+    <string>processing</string>
+</array>
+<key>BGTaskSchedulerPermittedIdentifiers</key>
+<array>
+    <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 </array>
 <key>CFBundleDisplayName</key>
-<string>MujBites</string>
+<string>mujbites</string>
 <key>CFBundleName</key>
-<string>MujBites</string>
+<string>mujbites</string>
 <key>LSApplicationQueriesSchemes</key>
 <array>
     <string>http</string>
